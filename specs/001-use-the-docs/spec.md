@@ -63,10 +63,19 @@ As an end user, after installing Osnova I can browse and run distributed applica
 2. **Given** a server address is configured and pairing is completed, **When** the user uses Osnova on a mobile device, **Then** backend operations execute on the configured server while the mobile client remains responsive.
 
 ### Edge Cases
-- What happens if the configured server is unreachable or slow? [NEEDS CLARIFICATION]
-- How are multiple concurrent mobile clients handled by the server instance? [NEEDS CLARIFICATION]
-- What is the expected behavior when a manifest references a missing/invalid component version? [NEEDS CLARIFICATION]
-- How are encryption keys created, stored, rotated, and recovered? [NEEDS CLARIFICATION]
+- During pairing, if the server address is invalid or the server does not respond:
+  - The mobile app informs the user “Server not found” and offers a retry option.
+- When a previously configured server is temporarily unreachable or slow at runtime:
+  - The user is notified and may choose to retry or temporarily run the affected app in stand‑alone mode.
+- Multiple concurrent mobile clients connecting to one server:
+  - The server must support multiple clients; the specific concurrency strategy is decided in the implementation plan.
+- Missing/invalid component version referenced in a manifest:
+  - Warn the user and cancel opening the app.
+- Key lifecycle (creation, storage, rotation, recovery):
+  - A user‑controlled 12‑word seed phrase establishes the root identity; all keys derive from it. Users can import an existing seed to restore identity and access.
+- User deletes an app's configuration or cache while the app is running:
+  - The system informs the user that changes will take effect on relaunch; subsequent launches use defaults with caches cleared.
+
 
 ## Requirements *(mandatory)*
 
@@ -76,23 +85,45 @@ As an end user, after installing Osnova I can browse and run distributed applica
 - **FR-003**: System MUST run cross‑platform and provide installable binaries for all major OSes and architectures: Windows, MacOS, Android, iOS, and various flavors of Linux.
 - **FR-004**: System MUST support Stand‑alone mode by default, with all components running locally on the device.
 - **FR-005**: System MUST support Client‑Server mode where backend operations run on a user‑configured server while the client interacts over the network.
-- **FR-006**: System MUST allow simple pairing of mobile devices to a user’s server (e.g., via QR code). [NEEDS CLARIFICATION: pairing flow and security requirements]
-- **FR-007**: System MUST isolate user data between clients and encrypt data at rest on both server and stand‑alone devices. [NEEDS CLARIFICATION: encryption standards and key management]
+- **FR-006**: System MUST allow simple pairing of mobile devices to a user’s server, supporting:
+  - Initiation from the mobile app via QR code scan or manual address entry
+  - Mutual key exchange between device and server upon successful contact
+  - Clear “Server not found” feedback with a retry option when the server does not respond
+  - Establishment of an encrypted channel after pairing; device data encrypted with its key
+- **FR-007**: System MUST isolate user data between clients and encrypt data at rest on both server and stand‑alone devices, using a user‑controlled root secret (12‑word seed) for key derivation and allowing seed import for recovery.
 - **FR-008**: System MUST support multiple concurrent clients when running as a server.
-- **FR-009**: System MUST include core applications by default: App Launcher, Crypto Wallet with Fiat Bridge, Search, File Manager, Configuration Manager. [NEEDS CLARIFICATION: MVP scope for each]
+- **FR-009**: System MUST include core applications by default, with the following MVP scope:
+  - App Launcher: list available apps; launch selected app by loading its manifest and opening in a tab/window; display loading/errors.
+  - Crypto Wallet & Fiat Bridge: view balances; receive and send; basic swap; initiate fiat on/off‑ramp via supported providers.
+  - Search: single omnibox; fetch results from distributed sources; context‑aware presentation for apps, media, images, and web pages.
+  - File Manager: list downloaded/uploaded files; open file location; basic actions (open, rename, delete).
+  - Configuration Manager: set server address; manage pairing; back up/restore seed phrase; manage accounts and basic security settings; manage per‑app configuration and cached data per user (view, export, reset, delete).
+
 - **FR-010**: Search MUST be context‑aware, adjusting results format for apps, media, images, or web pages.
-- **FR-011**: Components MUST communicate via generic protocols independent of Osnova to enable portability. [NEEDS CLARIFICATION: protocols and interoperability constraints]
-- **FR-012**: Each component version MUST be immutable and retrievable at a stable location. [NEEDS CLARIFICATION: hosting/distribution mechanism]
+- **FR-011**: Components MUST communicate via stable, generic request/response interfaces independent of Osnova, enabling portability across runtimes; components run isolated from the host app.
+- **FR-012**: Each component version MUST be immutable and retrievable from permanent, content‑addressed storage networks; primary network to be the Autonomi network, with support for alternatives (e.g., other permanent storage networks) to ensure long‑term availability.
+- **FR-013**: System MUST persist per-app configuration and cached data as part of the user-managed encrypted data store, accessible to the end user.
+- **FR-014**: Configuration Manager MUST let users browse, view, export, reset, and delete per-app configuration and cached data for their account, with clear warnings and confirmation for destructive actions.
+- **FR-015**: When the user deletes an app's configuration and/or cache, the next launch MUST start with default settings and no cached data; the user should be informed that a relaunch may be required.
+- **FR-016**: In Client-Server and Stand-alone modes, configuration and cache management MUST preserve data isolation between users and devices and operate on the user's scoped data in the selected mode.
+
 
 ### Key Entities *(include if feature involves data)*
 - **Osnova Application**: A versioned manifest declaring frontend and backend components and required metadata.
+- **App Configuration**: User-visible preferences and settings per app; part of the encrypted data store; accessible and manageable by the user. These settings can also be saved to the storage network to restore settings from the seed phrase when restarting the application on a new installation.
+- **App Cache**: Regenerable, non-authoritative data stored per app to improve performance; included in the encrypted data store; user-controllable via Configuration Manager.
+
 - **Component (Frontend)**: Provides UI; interacts with backend components via generic protocols.
 - **Component (Backend)**: Provides business logic; may interact with host resources, other components, or distributed networks.
 - **Manifest**: Defines the list of components and configuration; versions are immutable and permanently retrievable.
 - **Server Instance**: User‑controlled host executing backend components for one or more clients.
 - **Client Device**: User device (including mobile) that renders frontends and communicates with the server when configured.
 
+- **Root Identity**: User’s 12‑word seed phrase from which device and account keys are derived; used for backup and recovery.
+- **Pairing Session**: Temporary handshake state exchanging device and server keys to establish a trusted, encrypted channel.
+
 ---
+
 
 ## Review & Acceptance Checklist
 *GATE: Automated checks run during main() execution*
