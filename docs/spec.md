@@ -72,3 +72,12 @@ Files that have been downloaded or uploaded will be displayed in the file manage
 ## Configuration Manager
 Configures the osnova installation on the particular device. Manages any passwords, encryption keys, or accounts.
 
+# Edge Cases
+- What happens if the configured server is unreachable or slow?
+  - In this case osnova will display a warning to the user and ask if they want to continue by running in standalone mode on their device.
+- How are multiple concurrent mobile clients handled by the server instance?
+  - This is a technical detail that will be covered in the implementation plan, it is outside of the specification
+- What is the expected behavior when a manifest references a missing/invalid component version?
+  - If the manifest references a missing/invalid component version, it will throw a warning to the user and cancel opening the specified osnova app
+- How are encryption keys created, stored, rotated, and recovered?
+  - When osnova is installed on a device, a 12 word seed phrase is generated. This is used as the base for key derivation and all keys are derived from this. To utilize an existing key chain, the user can type in a previous 12 word seed phrase instead of generating a new one. This 12 word seed phrase is the root identity, just like typical crypto wallets.
