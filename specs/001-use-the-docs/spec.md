@@ -4,7 +4,7 @@
 **Created**: 2025-09-29
 **Status**: Draft
 **Input**: User description: "use the @docs/spec.md as the initial specification"
-**Source Document**: /home/system/osnova/docs/spec.md
+**Source Document**: docs/spec.md
 
 ## Execution Flow (main)
 ```
@@ -72,7 +72,7 @@ As an end user, after installing Osnova I can browse and run distributed applica
 - Missing/invalid component version referenced in a manifest:
   - Warn the user and cancel opening the app.
 - Key lifecycle (creation, storage, rotation, recovery):
-  - A user‑controlled 12‑word seed phrase establishes the root identity; all keys derive from it. Users can import an existing seed to restore identity and access.
+  - A user‑controlled 12‑word seed phrase (industry‑standard mnemonic) establishes the root identity; all keys derive from it. Users can import an existing seed to restore identity and access.
 - User deletes an app's configuration or cache while the app is running:
   - The system informs the user that changes will take effect on relaunch; subsequent launches use defaults with caches cleared.
 
@@ -82,7 +82,7 @@ As an end user, after installing Osnova I can browse and run distributed applica
 ### Functional Requirements
 - **FR-001**: System MUST provide a browser‑like UI with tabs and windows for switching between Osnova applications.
 - **FR-002**: System MUST dynamically load components defined in an application manifest and run them to render the application UI.
-- **FR-003**: System MUST run cross‑platform and provide installable binaries for all major OSes and architectures: Windows, MacOS, Android, iOS, and various flavors of Linux.
+- **FR-003**: System MUST run cross‑platform and provide installable binaries for all major OSes and architectures: Windows, macOS, Android, iOS, and various flavors of Linux.
 - **FR-004**: System MUST support Stand‑alone mode by default, with all components running locally on the device.
 - **FR-005**: System MUST support Client‑Server mode where backend operations run on a user‑configured server while the client interacts over the network.
 - **FR-006**: System MUST allow simple pairing of mobile devices to a user’s server, supporting:
@@ -119,7 +119,7 @@ As an end user, after installing Osnova I can browse and run distributed applica
 - **Server Instance**: User‑controlled host executing backend components for one or more clients.
 - **Client Device**: User device (including mobile) that renders frontends and communicates with the server when configured.
 
-- **Root Identity**: User’s 12‑word seed phrase from which device and account keys are derived; used for backup and recovery.
+- **Root Identity**: User’s 12‑word seed phrase (industry‑standard mnemonic) from which device and account keys are derived; used for backup and recovery.
 - **Pairing Session**: Temporary handshake state exchanging device and server keys to establish a trusted, encrypted channel.
 
 ---
