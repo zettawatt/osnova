@@ -53,6 +53,8 @@ Arguments considered: leverage @docs/plan.md and templates to setup the implemen
 ## UI Baseline (from docs/spec.md)
 - Desktop UX: theme toggle (light/dark) in top-right; auto-sync with OS theme
 - Mobile UX: bottom 5-icon menu configurable to select an Osnova app tab
+- First-run onboarding wizard: prompt for display name; choose Import (4-word phrase via saorsa-core) or Create New (saorsa-core flow)
+
 - Responsive Svelte UI for desktop and mobile contexts
 ## Design insights from docs/plan.md
 - Backend: Rust library; Tauri commands call public functions
@@ -64,6 +66,14 @@ Arguments considered: leverage @docs/plan.md and templates to setup the implemen
 - Modes: Stand-alone (local IPC transport) and Client-Server (backend OpenRPC servers on server with encrypted channel to client)
 - Server mode ops: headless via `--server`, suitable for systemd (or equivalent); exposes read-only status endpoint; file-based logging
 - MPC client: each backend component exposes a client to enable AI agents to invoke public API directly (plan later)
+## MPC client for backend components (MVP requirement)
+- Requirement: Each backend component MUST expose an agent-compatible client binding to its public API for direct automated invocation by AI agents and tooling.
+- Binding approach: Implemented as an MPC client connected to the component's OpenRPC server; it mirrors the same method set and schemas.
+- Authentication/authorization: Reuse the same auth model as regular clients; restrict to developer/QA contexts; ensure principle of least privilege and no additional capabilities beyond the public API.
+- Use cases: automated iteration and research, contract tests, integration test harnesses, benchmark runs.
+- Deliverables: documentation, example usage snippet, and tests demonstrating MPC client parity with the server (positive/negative cases, auth failures).
+- Non-goals (MVP): cross-component orchestration beyond a single component; long-lived autonomous agent scheduling.
+
 
 
 ## Constitution Check
@@ -203,6 +213,8 @@ specs/
 2. **Generate API contracts** from functional requirements:
    - For each user action -> method
    - Use OpenRPC specification
+   - Include onboarding scenarios: identity.status (initial=false), identity.importWithPhrase (success/failure), identity.create (success)
+
    - Output OpenRPC schema(s) to `/contracts/openrpc.json` and/or `/contracts/openrpc/*.json` (per component)
 
 3. **Generate contract tests** from contracts:

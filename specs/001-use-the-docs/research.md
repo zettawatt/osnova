@@ -74,8 +74,11 @@ This document consolidates Phase 0 research outcomes and clarifications captured
 
 ## Remaining open questions
 - Status endpoint shape/protocol in server mode (HTTP JSON on localhost vs OpenRPC method vs both); minimal fields proposed: {status, version, uptime, components:[{name, status}]}
+  - Decision: use only OpenRPC method
 - Logging rotation policy and log directory locations per platform
+  - Decision: see log rotation policy elsewhere in the documentation 
 - Exact Autonomi Rust crate(s) and versions to target; mirror configuration not required for MVP
+  - Decision: use a local git submodule of the saorsa-core repository to get the latest updates. Use the latest published crate for autonomi.
 
 ## References
 - Feature spec: /home/system/osnova/specs/001-use-the-docs/spec.md

@@ -19,19 +19,31 @@
       "name": "apps.launch",
       "summary": "Launch an application by manifest id",
       "params": [ { "name": "appId", "schema": { "type": "string" } } ],
-      "result": { "name": "status", "schema": { "type": "object", "properties": { "accepted": {"type": "boolean"} }, "required": ["accepted"] } }
+      "result": { "name": "status", "schema": { "type": "object", "properties": { "accepted": {"type": "boolean"} }, "required": ["accepted"] } },
+      "errors": [
+        { "code": -32001, "message": "NotFound", "data": { "code": "not_found", "target": "appId" } },
+        { "code": -32000, "message": "ValidationError", "data": { "code": "validation_error" } }
+      ]
     },
     {
       "name": "config.setServer",
       "summary": "Set server address for Client-Server mode",
       "params": [ { "name": "address", "schema": { "type": "string" } } ],
-      "result": { "name": "ok", "schema": { "type": "boolean" } }
+      "result": { "name": "ok", "schema": { "type": "boolean" } },
+      "errors": [
+        { "code": -32000, "message": "ValidationError", "data": { "code": "validation_error", "fields": {"address": "invalid"} } },
+        { "code": -32002, "message": "Unavailable", "data": { "code": "unavailable" } }
+      ]
     },
     {
       "name": "pairing.start",
       "summary": "Initiate pairing with a server",
       "params": [],
-      "result": { "name": "pairing", "schema": { "type": "object", "properties": { "sessionId": {"type": "string"} }, "required": ["sessionId"] } }
+      "result": { "name": "pairing", "schema": { "type": "object", "properties": { "sessionId": {"type": "string"} }, "required": ["sessionId"] } },
+      "errors": [
+        { "code": -32002, "message": "Unavailable", "data": { "code": "unavailable" } },
+        { "code": -32000, "message": "ValidationError", "data": { "code": "validation_error" } }
+      ]
     },
     {
       "name": "search.query",
@@ -72,7 +84,10 @@
           },
           "required": ["status", "version", "uptime"]
         }
-      }
+      },
+      "errors": [
+        { "code": -32002, "message": "Unavailable", "data": { "code": "unavailable" } }
+      ]
     }
 ,
     {
@@ -98,6 +113,24 @@
       "summary": "Switch active app tab (mobile)",
       "params": [ { "name": "index", "schema": { "type": "integer", "minimum": 0, "maximum": 4 } } ],
       "result": { "name": "ok", "schema": { "type": "boolean" } }
+,
+    {
+      "name": "identity.status",
+      "summary": "Report identity initialization state",
+      "params": [],
+      "result": { "name": "identity", "schema": { "type": "object", "properties": { "initialized": {"type": "boolean"}, "identityId": {"type": "string"} }, "required": ["initialized"] } }
+    },
+    {
+      "name": "identity.importWithPhrase",
+      "summary": "Import identity using a saorsa-core 4-word phrase",
+      "params": [ { "name": "phrase", "schema": { "type": "string" } }, { "name": "displayName", "schema": { "type": "string" } } ],
+      "result": { "name": "ok", "schema": { "type": "object", "properties": { "accepted": {"type": "boolean"}, "identityId": {"type": "string"} }, "required": ["accepted"] } }
+    },
+    {
+      "name": "identity.create",
+      "summary": "Create a new identity via saorsa-core",
+      "params": [ { "name": "displayName", "schema": { "type": "string" } } ],
+      "result": { "name": "ok", "schema": { "type": "object", "properties": { "accepted": {"type": "boolean"}, "identityId": {"type": "string"} }, "required": ["accepted"] } }
     }
 
   ]

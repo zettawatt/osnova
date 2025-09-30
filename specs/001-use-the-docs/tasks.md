@@ -17,9 +17,10 @@ Generated from Phase 1 design docs and clarifications. Follow TDD: write failing
 5. Create OpenRPC contract tests for methods: files.list
 6. Create OpenRPC contract tests for method: status.get (server)
 7. Create OpenRPC contract tests for UI methods: ui.setTheme, ui.getTheme, nav.setBottomMenu, nav.switchTab
-8. Model definitions: OsnovaApplication, ComponentRef
-8. Model definitions: AppConfiguration, AppCache
-9. Model definitions: RootIdentity, DeviceKey
+8. Create OpenRPC contract tests for onboarding methods: identity.status, identity.importWithPhrase, identity.create
+9. Model definitions: OsnovaApplication, ComponentRef
+10. Model definitions: AppConfiguration, AppCache
+11. Model definitions: Identity, UserProfile
 10. Model definitions: PairingSession, ServerInstance, ClientDevice
 11. Implement data persistence interface (encrypted store) - stubs only
 12. Implement App Launcher flow against contracts (stub handlers)

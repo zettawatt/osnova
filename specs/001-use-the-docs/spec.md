@@ -81,7 +81,7 @@ As an end user, after installing Osnova I can browse and run distributed applica
 - Missing/invalid component version referenced in a manifest:
   - Warn the user and cancel opening the app.
 - Key lifecycle (creation, storage, rotation, recovery):
-  - A user‑controlled 12‑word seed phrase (industry‑standard mnemonic) establishes the root identity; all keys derive from it. Users can import an existing seed to restore identity and access.
+  - Identity and key management are handled by saorsa-core; users can import or restore identity using saorsa-core flows. Osnova does not expose or require seed phrases.
 - User deletes an app's configuration or cache while the app is running:
   - The system informs the user that changes will take effect on relaunch; subsequent launches use defaults with caches cleared.
 
@@ -91,7 +91,7 @@ As an end user, after installing Osnova I can browse and run distributed applica
 ### Functional Requirements
 - **FR-001**: System MUST provide a browser‑like UI with tabs and windows for switching between Osnova applications.
 - **FR-002**: System MUST dynamically load components defined in an application manifest and run them to render the application UI.
-- **FR-003**: System MUST run cross‑platform and provide installable binaries for all major OSes and architectures: Windows, macOS, Android, iOS, and various flavors of Linux.
+- **FR-003**: System MUST run cross‑platform and provide installable binaries for major OSes (desktop and mobile) as defined in the implementation plan.
 - **FR-004**: System MUST support Stand‑alone mode by default, with all components running locally on the device.
 - **FR-005**: System MUST support Client‑Server mode where backend operations run on a user‑configured server while the client interacts over the network.
 - **FR-006**: System MUST allow simple pairing of mobile devices to a user’s server, supporting:
@@ -106,36 +106,41 @@ As an end user, after installing Osnova I can browse and run distributed applica
   - Crypto Wallet & Fiat Bridge: view balances; receive and send; basic swap; initiate fiat on/off‑ramp via supported providers.
   - Search: single omnibox; fetch results from distributed sources; context‑aware presentation for apps, media, images, and web pages.
   - File Manager: list downloaded/uploaded files; open file location; basic actions (open, rename, delete).
-  - Configuration Manager: set server address; manage pairing; back up/restore seed phrase; manage accounts and basic security settings; manage per‑app configuration and cached data per user (view, export, reset, delete).
+  - Configuration Manager: set server address; manage pairing; back up/restore identity; manage accounts and basic security settings; manage per‑app configuration and cached data per user (view, export, reset, delete).
 - **FR-010**: Search MUST be context‑aware, adjusting results format for apps, media, images, or web pages.
 - **FR-011**: Components MUST communicate via stable, generic request/response interfaces independent of Osnova, enabling portability across runtimes; components run isolated from the host app.
-- **FR-012**: Each component version MUST be immutable and retrievable from a permanent, content‑addressed storage network. For MVP, ONLY the Autonomi network and its Rust crate MUST be used to store and fetch immutable components.
+- **FR-012**: Each component version MUST be immutable and retrievable from a permanent, content‑addressed storage network. The specific network(s) are implementation details documented in the plan.
 - **FR-013**: System MUST persist per-app configuration and cached data as part of the user-managed encrypted data store, accessible to the end user.
 - **FR-014**: Configuration Manager MUST let users browse, view, export, reset, and delete per-app configuration and cached data for their account, with clear warnings and confirmation for destructive actions.
 - **FR-015**: When the user deletes an app's configuration and/or cache, the next launch MUST start with default settings and no cached data; the user should be informed that a relaunch may be required.
-
+- **FR-016**: In Client-Server and Stand-alone modes, configuration and cache management MUST preserve data isolation between users and devices and operate on the user's scoped data in the selected mode.
+- **FR-017**: The platform MUST provide a headless server mode suitable for running as a system service (start/stop/restart). This mode launches required backend components and exposes a control/status interface.
+- **FR-018**: In server mode, the platform MUST expose a read-only status method (status.get) that the host OS can query for health/version/uptime and component statuses via the chosen control interface.
+- **FR-019**: On first launch with no existing identity, the system MUST present an onboarding wizard that asks for the user's display name and whether to import an existing identity (via saorsa-core) or create a new identity.
+- **FR-020**: If the user chooses import, the system MUST accept the saorsa-core import token (e.g., a 4-word phrase) and initialize the identity via saorsa-core, then persist identity state and the user's display name. If import fails, the user MUST see a clear error and be able to retry or switch to new identity creation; sensitive inputs MUST NOT be logged.
+- **FR-021**: If the user chooses new, the system MUST follow the saorsa-core identity creation flow, initialize encryption-at-rest (saorsa-seal), and persist identity state and the user's display name.
+- **FR-022**: Each backend component MUST provide an agent-compatible client binding to its public API to enable direct automated invocation (e.g., by AI agents) during development, testing, and research. Implementation details are specified in the plan.
 
 ### Non-Functional Requirements
 - **NFR-001**: p95 time from app launch to first meaningful render <= 2 seconds.
-- **NFR-003**: For MVP, no formal uptime SLO; availability is best-effort.
 - **NFR-002**: Client prompts fallback if p95 backend response latency > 5 seconds.
-- **FR-016**: In Client-Server and Stand-alone modes, configuration and cache management MUST preserve data isolation between users and devices and operate on the user's scoped data in the selected mode.
-- **FR-017**: The platform MUST provide a headless server mode runnable via CLI flag `--server`, designed to run as a system service (systemd or equivalent) supporting start/stop/restart. This mode launches required backend plugins and exposes their OpenRPC servers.
-- **FR-018**: In server mode, the platform MUST expose a read-only status endpoint via OpenRPC method `status.get` that the host OS can query for health/version/uptime and component statuses.
+- **NFR-003**: For MVP, no formal uptime SLO; availability is best-effort.
 - **NFR-004**: Logging MUST be file-based with rotation; default level INFO; per-component/host logs acceptable for MVP.
-
+- **NFR-005**: First-run detection MUST occur entirely locally without external network calls before identity is created/imported; logs MUST redact secrets in all modes.
 ### Key Entities *(include if feature involves data)*
 - **Osnova Application**: A versioned manifest declaring frontend and backend components and required metadata.
-- **App Configuration**: User-visible preferences and settings per app; part of the encrypted data store; accessible and manageable by the user. These settings can also be saved to the storage network to restore settings from the seed phrase when restarting the application on a new installation.
+- **App Configuration**: User-visible preferences and settings per app; part of the encrypted data store; accessible and manageable by the user. These settings can also be saved to the storage network to restore settings when the identity is restored via saorsa-core on a new installation.
 - **App Cache**: Regenerable, non-authoritative data stored per app to improve performance; included in the encrypted data store; user-controllable via Configuration Manager.
 
 - **Component (Frontend)**: Provides UI; interacts with backend components via generic protocols.
 - **Component (Backend)**: Provides business logic; may interact with host resources, other components, or distributed networks.
 - **Manifest**: Defines the list of components and configuration; versions are immutable and permanently retrievable.
 - **Server Instance**: User‑controlled host executing backend components for one or more clients.
+- **User Profile**: Stores user display name and preferences associated with the active identity; persisted within the encrypted store.
+
 - **Client Device**: User device (including mobile) that renders frontends and communicates with the server when configured.
 
-- **Root Identity**: User’s 12‑word seed phrase (industry‑standard mnemonic) from which device and account keys are derived; used for backup and recovery.
+- **Identity**: Managed by saorsa-core per AGENTS_API; may be imported via a 4-word phrase or created new; provides keys used by saorsa-seal for encryption-at-rest.
 - **Pairing Session**: Temporary handshake state exchanging device and server keys to establish a trusted, encrypted channel.
 
 ---
@@ -211,6 +216,12 @@ The search bar will be context aware:
  - searching for web pages will display a main line and some context lines, like your standard web browser experience
 
 ## File Manager
+## Onboarding and identity import (clarification)
+- First run: detect absence of local identity and present onboarding wizard.
+- Wizard prompts: display name; choice between Import (4-word phrase from saorsa-core) or Create New.
+- Import: accept 4-word phrase; initialize identity via saorsa-core; persist identity and display name; on failure, show clear error; never log secrets.
+- Create New: follow saorsa-core identity creation flow; setup encryption-at-rest via saorsa-seal; persist identity and display name.
+
 Files that have been downloaded or uploaded will be displayed in the file management application.
 
 ## Configuration Manager
