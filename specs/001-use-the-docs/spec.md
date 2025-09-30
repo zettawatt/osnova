@@ -52,6 +52,15 @@ When creating this spec from a user prompt:
    - Security/compliance needs
 
 ---
+## Clarifications
+
+### Session 2025-09-30
+- Q: For Client‑Server mode, what is the intended confidentiality model for user data handled by the server? → A: End‑to‑end encryption for user data
+- Q: For MVP, how many concurrent mobile clients must a single server support without unacceptable degradation? → A: 5 concurrent clients
+- Q: What is the p95 target from app launch to first meaningful render for MVP? → A: ≤ 2 seconds
+- Q: At runtime, above what p95 backend response latency should the client prompt the user to retry or temporarily switch to stand-alone mode? A: > 5 seconds
+- Q: What monthly uptime target should the server meet for MVP? → A: Best-effort (no formal SLO)
+
 
 ## User Scenarios & Testing *(mandatory)*
 
@@ -90,8 +99,8 @@ As an end user, after installing Osnova I can browse and run distributed applica
   - Mutual key exchange between device and server upon successful contact
   - Clear “Server not found” feedback with a retry option when the server does not respond
   - Establishment of an encrypted channel after pairing; device data encrypted with its key
-- **FR-007**: System MUST isolate user data between clients and encrypt data at rest on both server and stand‑alone devices, using a user‑controlled root secret (12‑word seed) for key derivation and allowing seed import for recovery.
-- **FR-008**: System MUST support multiple concurrent clients when running as a server.
+- **FR-007**: System MUST isolate user data between clients and encrypt data at rest on both server and stand‑alone devices, using a user‑controlled root secret (12‑word seed) for key derivation and allowing seed import for recovery. In Client‑Server mode, user data MUST be end‑to‑end encrypted such that the server cannot decrypt user content; only routing/operational metadata may remain in plaintext.
+- **FR-008**: System MUST support at least 5 concurrent clients when running as a server without unacceptable degradation.
 - **FR-009**: System MUST include core applications by default, with the following MVP scope:
   - App Launcher: list available apps; launch selected app by loading its manifest and opening in a tab/window; display loading/errors.
   - Crypto Wallet & Fiat Bridge: view balances; receive and send; basic swap; initiate fiat on/off‑ramp via supported providers.
@@ -105,6 +114,15 @@ As an end user, after installing Osnova I can browse and run distributed applica
 - **FR-013**: System MUST persist per-app configuration and cached data as part of the user-managed encrypted data store, accessible to the end user.
 - **FR-014**: Configuration Manager MUST let users browse, view, export, reset, and delete per-app configuration and cached data for their account, with clear warnings and confirmation for destructive actions.
 - **FR-015**: When the user deletes an app's configuration and/or cache, the next launch MUST start with default settings and no cached data; the user should be informed that a relaunch may be required.
+
+
+### Non-Functional Requirements
+- **NFR-001**: p95 time from app launch to first meaningful render <= 2 seconds.
+- **NFR-003**: For MVP, no formal uptime SLO; availability is best-effort.
+
+- **NFR-002**: Client prompts fallback if p95 backend response latency > 5 seconds.
+
+
 - **FR-016**: In Client-Server and Stand-alone modes, configuration and cache management MUST preserve data isolation between users and devices and operate on the user's scoped data in the selected mode.
 
 
