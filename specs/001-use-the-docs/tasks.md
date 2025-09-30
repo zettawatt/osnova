@@ -15,8 +15,9 @@ Generated from Phase 1 design docs and clarifications. Follow TDD: write failing
 3. Create OpenRPC contract tests for methods: pairing.start
 4. Create OpenRPC contract tests for methods: search.query
 5. Create OpenRPC contract tests for methods: files.list
-6. Create OpenRPC contract tests for UI methods: ui.setTheme, ui.getTheme, nav.setBottomMenu, nav.switchTab
-7. Model definitions: OsnovaApplication, ComponentRef
+6. Create OpenRPC contract tests for method: status.get (server)
+7. Create OpenRPC contract tests for UI methods: ui.setTheme, ui.getTheme, nav.setBottomMenu, nav.switchTab
+8. Model definitions: OsnovaApplication, ComponentRef
 8. Model definitions: AppConfiguration, AppCache
 9. Model definitions: RootIdentity, DeviceKey
 10. Model definitions: PairingSession, ServerInstance, ClientDevice
@@ -31,8 +32,12 @@ Generated from Phase 1 design docs and clarifications. Follow TDD: write failing
 19. Add performance guardrails: track launch timing; assert p95 target in tests is configurable
 20. Add fallback behavior when p95 backend latency exceeds 5 seconds (prompt signal)
 21. Lint/format/static analysis configuration and run gates
-22. Documentation updates: API examples and usage snippets
-23. Auditor pass: duplication, naming, dead code removal
+22. Implement server status.get handler (read-only), including uptime, version, component statuses
+23. Configure file-based logging with rotation (size 10MB, keep 7 files); default locations per platform (Linux: /var/log/osnova or ~/.local/state/osnova/logs; macOS: ~/Library/Logs/Osnova; Windows: %ProgramData%/Osnova/logs)
+24. Integrate saorsa-core identity and saorsa-seal encryption into data persistence (MVP stubs; latest crates; saorsa-core via git dependency)
+25. Pin and fetch latest Autonomi Rust crate for component storage/fetch
+26. Documentation updates: API examples and usage snippets
+27. Auditor pass: duplication, naming, dead code removal
 
 ## Notes
 - Parallelizable tasks: 1-5 (contract tests) and 6-9 (models) can run in parallel.

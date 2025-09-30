@@ -47,6 +47,35 @@
     }
 ,
     {
+      "name": "status.get",
+      "summary": "Get host/server status",
+      "params": [],
+      "result": {
+        "name": "status",
+        "schema": {
+          "type": "object",
+          "properties": {
+            "status": {"type": "string", "enum": ["ok", "degraded", "error"]},
+            "version": {"type": "string"},
+            "uptime": {"type": "integer"},
+            "components": {
+              "type": "array",
+              "items": {
+                "type": "object",
+                "properties": {
+                  "name": {"type": "string"},
+                  "status": {"type": "string", "enum": ["ok", "degraded", "error"]}
+                },
+                "required": ["name", "status"]
+              }
+            }
+          },
+          "required": ["status", "version", "uptime"]
+        }
+      }
+    }
+,
+    {
       "name": "ui.setTheme",
       "summary": "Set theme mode",
       "params": [ { "name": "mode", "schema": { "type": "string", "enum": ["light","dark","system"] } } ],

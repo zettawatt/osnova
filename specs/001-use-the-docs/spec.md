@@ -99,7 +99,7 @@ As an end user, after installing Osnova I can browse and run distributed applica
   - Mutual key exchange between device and server upon successful contact
   - Clear “Server not found” feedback with a retry option when the server does not respond
   - Establishment of an encrypted channel after pairing; device data encrypted with its key
-- **FR-007**: System MUST isolate user data between clients and encrypt data at rest on both server and stand‑alone devices, using a user‑controlled root secret (12‑word seed) for key derivation and allowing seed import for recovery. In Client‑Server mode, user data MUST be end‑to‑end encrypted such that the server cannot decrypt user content; only routing/operational metadata may remain in plaintext.
+- **FR-007**: System MUST isolate user data between clients and encrypt data at rest on both server and stand‑alone devices using saorsa-core identity and APIs for key management and saorsa-seal for encryption-at-rest. Identity import/restore flows MUST follow saorsa-core guidance. In Client‑Server mode, user data MUST be end‑to‑end encrypted such that the server cannot decrypt user content; only routing/operational metadata may remain in plaintext.
 - **FR-008**: System MUST support at least 5 concurrent clients when running as a server without unacceptable degradation.
 - **FR-009**: System MUST include core applications by default, with the following MVP scope:
   - App Launcher: list available apps; launch selected app by loading its manifest and opening in a tab/window; display loading/errors.
@@ -107,10 +107,9 @@ As an end user, after installing Osnova I can browse and run distributed applica
   - Search: single omnibox; fetch results from distributed sources; context‑aware presentation for apps, media, images, and web pages.
   - File Manager: list downloaded/uploaded files; open file location; basic actions (open, rename, delete).
   - Configuration Manager: set server address; manage pairing; back up/restore seed phrase; manage accounts and basic security settings; manage per‑app configuration and cached data per user (view, export, reset, delete).
-
 - **FR-010**: Search MUST be context‑aware, adjusting results format for apps, media, images, or web pages.
 - **FR-011**: Components MUST communicate via stable, generic request/response interfaces independent of Osnova, enabling portability across runtimes; components run isolated from the host app.
-- **FR-012**: Each component version MUST be immutable and retrievable from permanent, content‑addressed storage networks; primary network to be the Autonomi network, with support for alternatives (e.g., other permanent storage networks) to ensure long‑term availability.
+- **FR-012**: Each component version MUST be immutable and retrievable from a permanent, content‑addressed storage network. For MVP, ONLY the Autonomi network and its Rust crate MUST be used to store and fetch immutable components.
 - **FR-013**: System MUST persist per-app configuration and cached data as part of the user-managed encrypted data store, accessible to the end user.
 - **FR-014**: Configuration Manager MUST let users browse, view, export, reset, and delete per-app configuration and cached data for their account, with clear warnings and confirmation for destructive actions.
 - **FR-015**: When the user deletes an app's configuration and/or cache, the next launch MUST start with default settings and no cached data; the user should be informed that a relaunch may be required.
@@ -119,12 +118,11 @@ As an end user, after installing Osnova I can browse and run distributed applica
 ### Non-Functional Requirements
 - **NFR-001**: p95 time from app launch to first meaningful render <= 2 seconds.
 - **NFR-003**: For MVP, no formal uptime SLO; availability is best-effort.
-
 - **NFR-002**: Client prompts fallback if p95 backend response latency > 5 seconds.
-
-
 - **FR-016**: In Client-Server and Stand-alone modes, configuration and cache management MUST preserve data isolation between users and devices and operate on the user's scoped data in the selected mode.
-
+- **FR-017**: The platform MUST provide a headless server mode runnable via CLI flag `--server`, designed to run as a system service (systemd or equivalent) supporting start/stop/restart. This mode launches required backend plugins and exposes their OpenRPC servers.
+- **FR-018**: In server mode, the platform MUST expose a read-only status endpoint via OpenRPC method `status.get` that the host OS can query for health/version/uptime and component statuses.
+- **NFR-004**: Logging MUST be file-based with rotation; default level INFO; per-component/host logs acceptable for MVP.
 
 ### Key Entities *(include if feature involves data)*
 - **Osnova Application**: A versioned manifest declaring frontend and backend components and required metadata.
@@ -224,7 +222,7 @@ Configures the osnova installation on the particular device. Manages any passwor
 Summary: pairing initiates from mobile (QR/manual), keys are exchanged, and an encrypted channel is established. On failure, show "Server not found" with retry.
 
 ## Encryption and key management (see FR-007)
-Summary: 12-word seed derives device/account keys; data encrypted at rest on server and stand-alone; users can import seed for recovery.
+Summary: Identity and key management via saorsa-core AGENTS_API; data encrypted at rest via saorsa-seal. Identity import/restore flows follow saorsa-core guidance.
 
 ## MVP scope for core applications
 See Functional Requirements FR-009 for canonical scope and acceptance bullets.
