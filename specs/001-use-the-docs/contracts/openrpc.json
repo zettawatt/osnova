@@ -1,0 +1,76 @@
+{
+  "openrpc": "1.2.6",
+  "info": {
+    "title": "Osnova Component/Host OpenRPC",
+    "version": "0.1.0",
+    "description": "OpenRPC interface for Osnova host control and component interaction (MVP)."
+  },
+  "servers": [
+    { "name": "local", "url": "http://localhost:8080/rpc" }
+  ],
+  "methods": [
+    {
+      "name": "apps.list",
+      "summary": "List available applications",
+      "params": [],
+      "result": { "name": "apps", "schema": { "type": "array", "items": { "type": "object", "properties": { "id": {"type": "string"}, "name": {"type": "string"}, "version": {"type": "string"} }, "required": ["id","name","version"] } } }
+    },
+    {
+      "name": "apps.launch",
+      "summary": "Launch an application by manifest id",
+      "params": [ { "name": "appId", "schema": { "type": "string" } } ],
+      "result": { "name": "status", "schema": { "type": "object", "properties": { "accepted": {"type": "boolean"} }, "required": ["accepted"] } }
+    },
+    {
+      "name": "config.setServer",
+      "summary": "Set server address for Client-Server mode",
+      "params": [ { "name": "address", "schema": { "type": "string" } } ],
+      "result": { "name": "ok", "schema": { "type": "boolean" } }
+    },
+    {
+      "name": "pairing.start",
+      "summary": "Initiate pairing with a server",
+      "params": [],
+      "result": { "name": "pairing", "schema": { "type": "object", "properties": { "sessionId": {"type": "string"} }, "required": ["sessionId"] } }
+    },
+    {
+      "name": "search.query",
+      "summary": "Search omnibox",
+      "params": [ { "name": "q", "schema": { "type": "string" } } ],
+      "result": { "name": "results", "schema": { "type": "array", "items": { "type": "object", "properties": { "type": {"type": "string"}, "title": {"type": "string"}, "id": {"type": "string"} }, "required": ["type","title"] } } }
+    },
+    {
+      "name": "files.list",
+      "summary": "List files",
+      "params": [],
+      "result": { "name": "files", "schema": { "type": "array", "items": { "type": "object", "properties": { "name": {"type": "string"}, "path": {"type": "string"} }, "required": ["name","path"] } } }
+    }
+,
+    {
+      "name": "ui.setTheme",
+      "summary": "Set theme mode",
+      "params": [ { "name": "mode", "schema": { "type": "string", "enum": ["light","dark","system"] } } ],
+      "result": { "name": "ok", "schema": { "type": "boolean" } }
+    },
+    {
+      "name": "ui.getTheme",
+      "summary": "Get current theme mode",
+      "params": [],
+      "result": { "name": "mode", "schema": { "type": "string", "enum": ["light","dark","system"] } }
+    },
+    {
+      "name": "nav.setBottomMenu",
+      "summary": "Configure bottom 5-icon menu (mobile)",
+      "params": [ { "name": "items", "schema": { "type": "array", "items": { "type": "string" }, "maxItems": 5 } } ],
+      "result": { "name": "ok", "schema": { "type": "boolean" } }
+    },
+    {
+      "name": "nav.switchTab",
+      "summary": "Switch active app tab (mobile)",
+      "params": [ { "name": "index", "schema": { "type": "integer", "minimum": 0, "maximum": 4 } } ],
+      "result": { "name": "ok", "schema": { "type": "boolean" } }
+    }
+
+  ]
+}
+
