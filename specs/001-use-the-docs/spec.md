@@ -101,7 +101,7 @@ As an end user, after installing Osnova I can browse and run distributed applica
   - Establishment of an encrypted channel after pairing; device data encrypted with its key
 - **FR-007**: System MUST isolate user data between clients and encrypt data at rest on both server and stand‑alone devices using saorsa-core identity and APIs for key management and saorsa-seal for encryption-at-rest. A 12-word seed phrase MUST be used to derive a master key for all key derivation operations across Osnova and backend components. Identity import/restore flows MUST follow saorsa-core guidance. In Client‑Server mode, user data MUST be end‑to‑end encrypted such that the server cannot decrypt user content; only routing/operational metadata may remain in plaintext.
 - **FR-008**: System MUST support at least 5 concurrent clients when running as a server without unacceptable degradation.
-- **FR-009**: System MUST include core applications by default, with the following MVP scope:
+- **FR-009**: System SHOULD provide core applications as separate components outside the Osnova shell (Post-MVP). For MVP, the framework focuses on running backend components and rendering frontend components; core apps are examples delivered independently.
   - App Launcher: list available apps; launch selected app by loading its manifest and opening in a tab/window; display loading/errors.
   - Crypto Wallet & Fiat Bridge: view balances; receive and send; basic swap; initiate fiat on/off‑ramp via supported providers.
   - Search: single omnibox; fetch results from distributed sources; context‑aware presentation for apps, media, images, and web pages.
@@ -128,6 +128,13 @@ As an end user, after installing Osnova I can browse and run distributed applica
 - **NFR-004**: Logging MUST be file-based with rotation; default level INFO; per-component/host logs acceptable for MVP.
 - **NFR-005**: First-run detection MUST occur entirely locally without external network calls before identity is created/imported; logs MUST redact secrets in all modes.
 ### Key Entities *(include if feature involves data)*
+- **FR-022**: The App Launcher component MUST be the default screen when launching the Osnova shell; the shell loads the configured launcher manifest and renders it.
+- **FR-023**: The App Launcher screen MUST present Osnova app icons in a grid. On Android/iOS, multiple pages MUST be used when icons exceed one screen; on desktop, the grid MUST be in a continuously scrolling window.
+- **FR-024**: Users MUST be able to reorder and fix app icon placement. On Android/iOS a long-press and drag MUST enter reordering mode; on desktop, click-and-drag. Other icons SHOULD reshuffle based on the dragged icon's target location.
+- **FR-025**: The launcher icon layout MUST be persisted per-identity so that ordering and placements are restored on relaunch.
+- **FR-026**: The Configuration component MUST exist and provide a screen and functions to configure the Osnova shell, including setting the launcher manifest address.
+- **FR-027**: The application manifest MUST include an icon URI referencing an Autonomi address (ant://...) that is used by the App Launcher for the app icon.
+
 - **Osnova Application**: A versioned manifest declaring frontend and backend components and required metadata.
 - **App Configuration**: User-visible preferences and settings per app; part of the encrypted data store; accessible and manageable by the user. These settings can also be saved to the storage network to restore settings when the identity is restored via saorsa-core on a new installation.
 - **App Cache**: Regenerable, non-authoritative data stored per app to improve performance; included in the encrypted data store; user-controllable via Configuration Manager.
@@ -135,6 +142,9 @@ As an end user, after installing Osnova I can browse and run distributed applica
 - **Component (Frontend)**: Provides UI; interacts with backend components via generic protocols.
 - **Component (Backend)**: Provides business logic; may interact with host resources, other components, or distributed networks.
 - **Manifest**: Defines the list of components and configuration; versions are immutable and permanently retrievable.
+- **Manifest (fields)**: { id, name, version, iconUri (ant://...), frontend: {...}, backend: {...} }
+- **Launcher Configuration**: { launcherManifestUri (ant://... or dev path) } stored in shell config; editable via Configuration component.
+
 - **Server Instance**: User‑controlled host executing backend components for one or more clients.
 - **User Profile**: Stores user display name and preferences associated with the active identity; persisted within the encrypted store.
 
@@ -199,6 +209,8 @@ Connecting a mobile device to an Osnova server must be extremely easy for the us
 
 # Core applications
 
+[MVP Scope Adjustment] Core applications are not bundled into Osnova; they are delivered as separate components outside the shell. For MVP, Osnova focuses on the framework: loading manifests, running backend components, and rendering frontend components. The following core applications are considered post-MVP examples/components.
+
 The Osnova app will be preloaded with various core Osnova applications. These are only special in that they come with the default Osnova install.
 Users can swap these out with other Osnova apps to replace this functionality if desired.
 
@@ -243,6 +255,11 @@ See Functional Requirements FR-009 for canonical scope and acceptance bullets.
 
 ## Protocols and interoperability constraints
 See FR-011 for canonical interoperability requirements.
+## AI Agents and MPC (vision)
+- Goal: Enable users to ask AI agents to assemble Osnova applications from modular components based on prompts.
+- Rationale: Modular, well-documented components with stable OpenRPC contracts and direct MPC client access allow agents to compose apps dynamically.
+- Scope: Not part of MVP; the MVP focuses on the framework to run backend components and render frontend components. Agent composition is a post‑MVP objective.
+
 
 ## Hosting and distribution mechanism
 See FR-012 for canonical immutability and storage network requirements.

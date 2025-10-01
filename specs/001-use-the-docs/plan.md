@@ -34,6 +34,19 @@
 Osnova is a Tauri 2.x desktop/mobile application with a Svelte (TypeScript/HTML/CSS) UI and a Rust backend library. It loads application manifests and dynamically runs isolated frontend/backends as components (plugins). Frontends are static web apps (ZLIB-compressed tarballs) rendered in Tauri's WebView; backends are precompiled Rust binaries loaded via a Tauri plugin ABI (configure/start/stop/status). Components communicate over OpenRPC. Downloaded components are cached locally; production manifests reference Autonomi URIs (ant://). Modes: Stand-alone (all local) and Client-Server (remote backends over encrypted channels).
 
 Clarified decisions: End-to-end encryption of user data in Client-Server mode; support >= 5 concurrent clients per server (MVP); p95 launch->first meaningful render <= 2s; prompt fallback if p95 backend latency > 5s; MVP best-effort availability (no formal SLO).
+## MVP Scope Adjustment
+- Osnova acts as a lightweight shell/launcher only.
+- Core applications (Launcher UI, Wallet/Fiat, Search, Files, Config Manager) exist as modular components outside the shell; not bundled into the MVP.
+- MVP capabilities:
+  - Load manifests; cache components; launch frontend components in WebView
+  - Manage backend plugin lifecycle (configure/start/stop/status)
+  - Identity onboarding (saorsa-core), encryption-at-rest (saorsa-seal)
+  - OpenRPC host: status.get, identity.*, apps.launch/list, config.setServer, pairing.start
+  - Basic UI: theme toggle; mobile bottom menu
+- Post-MVP: ship core apps as separate components; expand UI/agent features
+- MVP includes two minimal components delivered as external modules: (1) Configuration app (shell settings including launcher manifest), (2) App Launcher app (grid UI, default screen)
+
+
 
 Arguments considered: leverage @docs/plan.md and templates to setup the implementation plan.
 
@@ -42,6 +55,13 @@ Arguments considered: leverage @docs/plan.md and templates to setup the implemen
 **Primary Dependencies**: Tauri 2.x, Svelte, OpenRPC, Zlib, Autonomi (Rust crate), saorsa-core, saorsa-seal
 **Storage**: Encrypted user-scoped data store; local cache for downloaded components; content-addressed networks (primary: Autonomi) for component versions.
 **Protocols**: OpenRPC (JSON-RPC 2.0)
+- App Launcher (grid) UX:
+  - Mobile: paginated grid; enter reorder with long press; drag to reposition; pages added/removed as needed
+  - Desktop: continuously scrolling grid; click+drag to reposition; auto-reshuffle
+  - Persist per-identity layout and restore on relaunch
+- Icons: manifest.iconUri points to Autonomi (ant://...), used in grid
+- Configuration app: includes `launcherManifestUri` field to swap launchers
+
 **Testing**: cargo test + Vitest + Playwright (TDD mandated by Constitution)
 **Target Platform**: Windows, macOS, Linux, Android, iOS
 **Project Type**: desktop+mobile app with backend library; componentized (frontend/backend)
@@ -52,7 +72,7 @@ Arguments considered: leverage @docs/plan.md and templates to setup the implemen
 
 ## UI Baseline (from docs/spec.md)
 - Desktop UX: theme toggle (light/dark) in top-right; auto-sync with OS theme
-- Mobile UX: bottom 5-icon menu configurable to select an Osnova app tab
+- Mobile UX: bottom 5-icon menu configurable to select an Osnova app tab (framework UI only; app tabs provided by external components)
 - First-run onboarding wizard: prompt for display name; choose Import (4-word identity address via saorsa-core) or Create New (saorsa-core flow). For stand-alone or server installs, include an install step to generate a new 12-word seed phrase or input an existing 12-word seed phrase to derive the master key used for all key derivation operations.
 
 - Responsive Svelte UI for desktop and mobile contexts
@@ -185,6 +205,8 @@ contracts/
 specs/
   001-use-the-docs/         # Feature documentation (this plan/spec/research/tasks)
 ```
+
+   - Include launcher scenarios: launcher.getLayout/setLayout (persisted order); apps.list includes iconUri/manifestUri; config.getLauncherManifest/setLauncherManifest
 
 
 ## Phase 0: Outline & Research

@@ -13,7 +13,7 @@
       "name": "apps.list",
       "summary": "List available applications",
       "params": [],
-      "result": { "name": "apps", "schema": { "type": "array", "items": { "type": "object", "properties": { "id": {"type": "string"}, "name": {"type": "string"}, "version": {"type": "string"} }, "required": ["id","name","version"] } } }
+      "result": { "name": "apps", "schema": { "type": "array", "items": { "type": "object", "properties": { "id": {"type": "string"}, "name": {"type": "string"}, "version": {"type": "string"}, "iconUri": {"type": "string"}, "manifestUri": {"type": "string"} }, "required": ["id","name","version"] } } }
     },
     {
       "name": "apps.launch",
@@ -24,6 +24,18 @@
         { "code": -32001, "message": "NotFound", "data": { "code": "not_found", "target": "appId" } },
         { "code": -32000, "message": "ValidationError", "data": { "code": "validation_error" } }
       ]
+    },
+    {
+      "name": "config.getLauncherManifest",
+      "summary": "Get the configured launcher manifest address",
+      "params": [],
+      "result": { "name": "address", "schema": { "type": "string" } }
+    },
+    {
+      "name": "config.setLauncherManifest",
+      "summary": "Set the launcher manifest address",
+      "params": [ { "name": "address", "schema": { "type": "string" } } ],
+      "result": { "name": "ok", "schema": { "type": "boolean" } }
     },
     {
       "name": "config.setServer",
@@ -114,6 +126,18 @@
       "params": [ { "name": "index", "schema": { "type": "integer", "minimum": 0, "maximum": 4 } } ],
       "result": { "name": "ok", "schema": { "type": "boolean" } }
 ,
+    {
+      "name": "launcher.getLayout",
+      "summary": "Get the current launcher icon order",
+      "params": [],
+      "result": { "name": "order", "schema": { "type": "array", "items": { "type": "string" } } }
+    },
+    {
+      "name": "launcher.setLayout",
+      "summary": "Set the launcher icon order",
+      "params": [ { "name": "order", "schema": { "type": "array", "items": { "type": "string" } } } ],
+      "result": { "name": "ok", "schema": { "type": "boolean" } }
+    },
     {
       "name": "identity.status",
       "summary": "Report identity initialization state",

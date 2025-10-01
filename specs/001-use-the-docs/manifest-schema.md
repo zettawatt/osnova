@@ -54,4 +54,5 @@ Notes:
 - If a required component is missing/unresolvable: show a clear error and cancel launch.
 - If integrity/signature verification fails: show a clear error and cancel launch.
 - If schema validation fails: surface validation messages for debugging; do not start components.
+- Version should follow semver standards, e.g. 1.0.0
 

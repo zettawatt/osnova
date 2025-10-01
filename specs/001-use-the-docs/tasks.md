@@ -5,7 +5,7 @@ Generated from Phase 1 design docs and clarifications. Follow TDD: write failing
 ## Ordering (high level)
 1. Contract tests (API)
 2. Data model scaffolding
-3. Core flows (Launcher, Pairing/Config, Search, Files)
+3. Core flows (Launcher, Pairing/Config). Search/Files deferred (post-MVP)
 4. Encryption/E2E policy enforcement
 5. Performance checks and fallback handling
 
@@ -13,8 +13,8 @@ Generated from Phase 1 design docs and clarifications. Follow TDD: write failing
 1. Create OpenRPC contract tests for methods: apps.list, apps.launch
 2. Create OpenRPC contract tests for methods: config.setServer
 3. Create OpenRPC contract tests for methods: pairing.start
-4. Create OpenRPC contract tests for methods: search.query
-5. Create OpenRPC contract tests for methods: files.list
+4. [Deferred, post-MVP] Create OpenRPC contract tests for methods: search.query
+5. [Deferred, post-MVP] Create OpenRPC contract tests for methods: files.list
 6. Create OpenRPC contract tests for method: status.get (server)
 7. Create OpenRPC contract tests for UI methods: ui.setTheme, ui.getTheme, nav.setBottomMenu, nav.switchTab
 8. Create OpenRPC contract tests for onboarding methods: identity.status, identity.importWithPhrase, identity.create
@@ -26,12 +26,18 @@ Generated from Phase 1 design docs and clarifications. Follow TDD: write failing
 12. Implement App Launcher flow against contracts (stub handlers)
 13. Implement Pairing initiation flow (stub handling, key exchange placeholder)
 14. Implement Config Manager server address update (validation + persistence)
-15. Implement Search stub returning typed results (apps, media, images, pages)
-16. Implement Files list stub
+15. [Deferred, post-MVP] Implement Search stub returning typed results (apps, media, images, pages)
+16. [Deferred, post-MVP] Implement Files list stub
 17. Implement UI methods: theme mode set/get; bottom menu configure; tab switch
 18. Enforce E2E policy boundary: ensure user data blobs are never decrypted on server (tests)
 19. Add performance guardrails: track launch timing; assert p95 target in tests is configurable
 20. Add fallback behavior when p95 backend latency exceeds 5 seconds (prompt signal)
+22. Implement config.getLauncherManifest/setLauncherManifest handlers (persisted)
+23. Implement launcher.getLayout/setLayout handlers (persisted per-identity)
+24. Create minimal App Launcher frontend component (grid UI, default screen; icons from manifest.iconUri; drag/long-press reordering; mobile pagination vs desktop scroll)
+25. Create minimal Configuration frontend component (shell settings incl. launcherManifestUri)
+26. Wire apps.list to include iconUri/manifestUri
+
 21. Lint/format/static analysis configuration and run gates
 22. Implement server status.get handler (read-only), including uptime, version, component statuses
 23. Configure file-based logging with rotation (size 10MB, keep 7 files); default locations per platform (Linux: /var/log/osnova or ~/.local/state/osnova/logs; macOS: ~/Library/Logs/Osnova; Windows: %ProgramData%/Osnova/logs)
