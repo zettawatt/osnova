@@ -81,7 +81,7 @@ As an end user, after installing Osnova I can browse and run distributed applica
 - Missing/invalid component version referenced in a manifest:
   - Warn the user and cancel opening the app.
 - Key lifecycle (creation, storage, rotation, recovery):
-  - Identity and key management are handled by saorsa-core; users can import or restore identity using saorsa-core flows. Osnova does not expose or require seed phrases.
+  - Users manage two identity artifacts: a 4-word identity address (for addressing/lookup) and a 12-word seed phrase (master key). The 12-word seed phrase is used to derive the master key for all key derivation operations across Osnova and backend components; users can generate or import it during install and must be able to back it up and restore it.
 - User deletes an app's configuration or cache while the app is running:
   - The system informs the user that changes will take effect on relaunch; subsequent launches use defaults with caches cleared.
 
@@ -99,14 +99,14 @@ As an end user, after installing Osnova I can browse and run distributed applica
   - Mutual key exchange between device and server upon successful contact
   - Clear “Server not found” feedback with a retry option when the server does not respond
   - Establishment of an encrypted channel after pairing; device data encrypted with its key
-- **FR-007**: System MUST isolate user data between clients and encrypt data at rest on both server and stand‑alone devices using saorsa-core identity and APIs for key management and saorsa-seal for encryption-at-rest. Identity import/restore flows MUST follow saorsa-core guidance. In Client‑Server mode, user data MUST be end‑to‑end encrypted such that the server cannot decrypt user content; only routing/operational metadata may remain in plaintext.
+- **FR-007**: System MUST isolate user data between clients and encrypt data at rest on both server and stand‑alone devices using saorsa-core identity and APIs for key management and saorsa-seal for encryption-at-rest. A 12-word seed phrase MUST be used to derive a master key for all key derivation operations across Osnova and backend components. Identity import/restore flows MUST follow saorsa-core guidance. In Client‑Server mode, user data MUST be end‑to‑end encrypted such that the server cannot decrypt user content; only routing/operational metadata may remain in plaintext.
 - **FR-008**: System MUST support at least 5 concurrent clients when running as a server without unacceptable degradation.
 - **FR-009**: System MUST include core applications by default, with the following MVP scope:
   - App Launcher: list available apps; launch selected app by loading its manifest and opening in a tab/window; display loading/errors.
   - Crypto Wallet & Fiat Bridge: view balances; receive and send; basic swap; initiate fiat on/off‑ramp via supported providers.
   - Search: single omnibox; fetch results from distributed sources; context‑aware presentation for apps, media, images, and web pages.
   - File Manager: list downloaded/uploaded files; open file location; basic actions (open, rename, delete).
-  - Configuration Manager: set server address; manage pairing; back up/restore identity; manage accounts and basic security settings; manage per‑app configuration and cached data per user (view, export, reset, delete).
+  - Configuration Manager: set server address; manage pairing; manage the identity address (4-word) and back up/restore the 12-word seed phrase; manage accounts and basic security settings; manage per‑app configuration and cached data per user (view, export, reset, delete).
 - **FR-010**: Search MUST be context‑aware, adjusting results format for apps, media, images, or web pages.
 - **FR-011**: Components MUST communicate via stable, generic request/response interfaces independent of Osnova, enabling portability across runtimes; components run isolated from the host app.
 - **FR-012**: Each component version MUST be immutable and retrievable from a permanent, content‑addressed storage network. The specific network(s) are implementation details documented in the plan.
@@ -116,9 +116,9 @@ As an end user, after installing Osnova I can browse and run distributed applica
 - **FR-016**: In Client-Server and Stand-alone modes, configuration and cache management MUST preserve data isolation between users and devices and operate on the user's scoped data in the selected mode.
 - **FR-017**: The platform MUST provide a headless server mode suitable for running as a system service (start/stop/restart). This mode launches required backend components and exposes a control/status interface.
 - **FR-018**: In server mode, the platform MUST expose a read-only status method (status.get) that the host OS can query for health/version/uptime and component statuses via the chosen control interface.
-- **FR-019**: On first launch with no existing identity, the system MUST present an onboarding wizard that asks for the user's display name and whether to import an existing identity (via saorsa-core) or create a new identity.
-- **FR-020**: If the user chooses import, the system MUST accept the saorsa-core import token (e.g., a 4-word phrase) and initialize the identity via saorsa-core, then persist identity state and the user's display name. If import fails, the user MUST see a clear error and be able to retry or switch to new identity creation; sensitive inputs MUST NOT be logged.
-- **FR-021**: If the user chooses new, the system MUST follow the saorsa-core identity creation flow, initialize encryption-at-rest (saorsa-seal), and persist identity state and the user's display name.
+- **FR-019**: On first launch with no existing identity, the system MUST present an onboarding wizard that asks for the user's display name and whether to import an existing identity address (via saorsa-core) or create a new identity address. For standalone or server installs, the install flow MUST also include a step to generate a new 12word seed phrase or input an existing 12word seed phrase.
+- **FR-020**: If the user chooses import, the system MUST accept the saorsa-core import token (4word identity address) and initialize the identity via saorsa-core; it MUST also allow the user to input a 12word seed phrase to derive the master key (or proceed to generation if not provided). Persist identity state, master key material (via secure key store), and the user's display name. On failure, show a clear error; secrets MUST NOT be logged.
+- **FR-021**: If the user chooses new, the system MUST follow the saorsa-core identity creation flow for the identity address and generate a new 12word seed phrase to derive the master key; initialize encryptionatrest (saorsaseal), and persist identity state, master key material (via secure key store), and the user's display name with backup guidance for the seed phrase.
 - **FR-022**: Each backend component MUST provide an agent-compatible client binding to its public API to enable direct automated invocation (e.g., by AI agents) during development, testing, and research. Implementation details are specified in the plan.
 
 ### Non-Functional Requirements
@@ -140,7 +140,10 @@ As an end user, after installing Osnova I can browse and run distributed applica
 
 - **Client Device**: User device (including mobile) that renders frontends and communicates with the server when configured.
 
-- **Identity**: Managed by saorsa-core per AGENTS_API; may be imported via a 4-word phrase or created new; provides keys used by saorsa-seal for encryption-at-rest.
+- **Identity**: Managed by saorsa-core per AGENTS_API; identified by a 4-word identity address (importable or creatable); cryptographic operations derive keys from a master key seeded by a 12-word seed phrase; keys are used by saorsa-seal for encryption-at-rest.
+- **Seed Phrase (12-word)**: User-backed mnemonic that seeds the master key used for all key derivation operations across Osnova and backend components; importable or generated during install.
+- **Master Key**: Derived from the 12-word seed phrase; never exported in plaintext; used to derive per-service keys (e.g., storage networks, component-specific keys) as detailed in the implementation plan.
+
 - **Pairing Session**: Temporary handshake state exchanging device and server keys to establish a trusted, encrypted channel.
 
 ---
@@ -218,9 +221,9 @@ The search bar will be context aware:
 ## File Manager
 ## Onboarding and identity import (clarification)
 - First run: detect absence of local identity and present onboarding wizard.
-- Wizard prompts: display name; choice between Import (4-word phrase from saorsa-core) or Create New.
-- Import: accept 4-word phrase; initialize identity via saorsa-core; persist identity and display name; on failure, show clear error; never log secrets.
-- Create New: follow saorsa-core identity creation flow; setup encryption-at-rest via saorsa-seal; persist identity and display name.
+- Wizard prompts: display name; choice between Import (4-word identity address via saorsa-core) or Create New; and for stand-alone/server installs: generate a new 12-word seed phrase or input an existing 12-word seed phrase for master key derivation.
+- Import: accept 4-word identity address; initialize identity via saorsa-core; optionally accept a 12-word seed phrase to derive the master key (or proceed to generation step); persist identity, master key material (via secure key store), and display name; on failure, show clear error; never log secrets.
+- Create New: follow saorsa-core identity creation flow for the identity address; generate a new 12-word seed phrase and derive the master key; setup encryption-at-rest via saorsa-seal; persist identity, master key material (via secure key store), and display name with backup guidance.
 
 Files that have been downloaded or uploaded will be displayed in the file management application.
 

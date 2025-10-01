@@ -53,7 +53,7 @@ Arguments considered: leverage @docs/plan.md and templates to setup the implemen
 ## UI Baseline (from docs/spec.md)
 - Desktop UX: theme toggle (light/dark) in top-right; auto-sync with OS theme
 - Mobile UX: bottom 5-icon menu configurable to select an Osnova app tab
-- First-run onboarding wizard: prompt for display name; choose Import (4-word phrase via saorsa-core) or Create New (saorsa-core flow)
+- First-run onboarding wizard: prompt for display name; choose Import (4-word identity address via saorsa-core) or Create New (saorsa-core flow). For stand-alone or server installs, include an install step to generate a new 12-word seed phrase or input an existing 12-word seed phrase to derive the master key used for all key derivation operations.
 
 - Responsive Svelte UI for desktop and mobile contexts
 ## Design insights from docs/plan.md
@@ -73,6 +73,20 @@ Arguments considered: leverage @docs/plan.md and templates to setup the implemen
 - Use cases: automated iteration and research, contract tests, integration test harnesses, benchmark runs.
 - Deliverables: documentation, example usage snippet, and tests demonstrating MPC client parity with the server (positive/negative cases, auth failures).
 - Non-goals (MVP): cross-component orchestration beyond a single component; long-lived autonomous agent scheduling.
+
+## Identity and Key Management (MVP)
+- Two artifacts:
+  - 4-word identity address: used for addressing/lookup; importable/creatable via saorsa-core
+  - 12-word seed phrase: used to derive the master key for all key derivation operations across Osnova and backend components
+- Install/onboarding:
+  - Stand-alone/server installs MUST include a step to generate a new 12-word seed phrase or input an existing one (12 input boxes) with clear backup UX
+  - Identity import/new follows saorsa-core flows for the 4-word identity address
+- Storage and security:
+  - Master key is derived from the seed phrase and stored only via secure platform keystore facilities; never logged or exported in plaintext
+  - Encryption-at-rest uses saorsa-seal keyed by material derived from the master key
+- Derivation usage (implementation-level examples):
+  - Autonomi or saorsa-core ML-DSA key derivation for storage/network operations
+  - Backend components derive their own sub-keys deterministically from the master key using namespaced derivation paths documented per component
 
 
 
