@@ -49,23 +49,36 @@
     },
     {
       "name": "pairing.start",
-      "summary": "Initiate pairing with a server",
-      "params": [],
-      "result": { "name": "pairing", "schema": { "type": "object", "properties": { "sessionId": {"type": "string"} }, "required": ["sessionId"] } },
+      "summary": "Initiate pairing with a server using a 4-word identity address (QR/manual)",
+      "params": [ { "name": "fourWordAddress", "schema": { "type": "string" } } ],
+      "result": {
+        "name": "pairing",
+        "schema": {
+          "type": "object",
+          "properties": {
+            "paired": { "type": "boolean" },
+            "attempts": { "type": "integer", "minimum": 1, "maximum": 3 },
+            "elapsedMs": { "type": "integer", "minimum": 0 }
+          },
+          "required": ["paired"]
+        }
+      },
       "errors": [
-        { "code": -32002, "message": "Unavailable", "data": { "code": "unavailable" } },
-        { "code": -32000, "message": "ValidationError", "data": { "code": "validation_error" } }
-      ]
+        { "code": -32000, "message": "ValidationError", "data": { "code": "validation_error", "fields": {"fourWordAddress": "invalid"} } },
+        { "code": -32002, "message": "Unavailable", "data": { "code": "server_not_found" } }
+      ],
+      "x-transport": "saorsa-core-secure-channel",
+      "x-retryPolicy": { "maxAttempts": 3, "perAttemptTimeoutMs": 5000, "backoffMs": [1000, 2000, 4000], "jitterMs": [100, 300] }
     },
     {
       "name": "search.query",
-      "summary": "Search omnibox",
+      "summary": "Search omnibox", "x-mvp": false,
       "params": [ { "name": "q", "schema": { "type": "string" } } ],
       "result": { "name": "results", "schema": { "type": "array", "items": { "type": "object", "properties": { "type": {"type": "string"}, "title": {"type": "string"}, "id": {"type": "string"} }, "required": ["type","title"] } } }
     },
     {
       "name": "files.list",
-      "summary": "List files",
+      "summary": "List files", "x-mvp": false,
       "params": [],
       "result": { "name": "files", "schema": { "type": "array", "items": { "type": "object", "properties": { "name": {"type": "string"}, "path": {"type": "string"} }, "required": ["name","path"] } } }
     }

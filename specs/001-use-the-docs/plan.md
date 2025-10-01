@@ -62,6 +62,11 @@ Arguments considered: leverage @docs/plan.md and templates to setup the implemen
 - Icons: manifest.iconUri points to Autonomi (ant://...), used in grid
 - Configuration app: includes `launcherManifestUri` field to swap launchers
 
+- Launcher acceptance criteria (MVP):
+  - Mobile: long-press >= 500ms to enter reorder; swipe to change pages; snap-to-grid on drop
+  - Desktop: click+drag reorder; continuous scroll; snap-to-grid on drop
+  - Persist layout per identity; save within ~1s of drop; fallback icon if iconUri unavailable
+
 **Testing**: cargo test + Vitest + Playwright (TDD mandated by Constitution)
 **Target Platform**: Windows, macOS, Linux, Android, iOS
 **Project Type**: desktop+mobile app with backend library; componentized (frontend/backend)

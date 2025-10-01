@@ -95,10 +95,12 @@ As an end user, after installing Osnova I can browse and run distributed applica
 - **FR-004**: System MUST support Stand‑alone mode by default, with all components running locally on the device.
 - **FR-005**: System MUST support Client‑Server mode where backend operations run on a user‑configured server while the client interacts over the network.
 - **FR-006**: System MUST allow simple pairing of mobile devices to a user’s server, supporting:
-  - Initiation from the mobile app via QR code scan or manual address entry
-  - Mutual key exchange between device and server upon successful contact
-  - Clear “Server not found” feedback with a retry option when the server does not respond
-  - Establishment of an encrypted channel after pairing; device data encrypted with its key
+  - Initiation from the mobile app via QR code scan or manual address entry; the QR encodes only the 4-word identity address
+  - Transport and security: all Client–Server communication uses saorsa-core’s secure channel; NAT traversal and hole punching are handled by saorsa-core
+  - Connection behavior (defaults): up to 3 attempts; per-attempt timeout 5s; exponential backoff 1s, 2s, 4s with 100–300ms jitter before showing an error
+  - Mutual key exchange between device and server upon successful contact (handled by saorsa-core)
+  - Clear “Server not found” feedback with a retry option when the server does not respond; allow manual entry of the 4-word address
+  - Establishment of an end-to-end encrypted channel after pairing; device data encrypted with its key
 - **FR-007**: System MUST isolate user data between clients and encrypt data at rest on both server and stand‑alone devices using saorsa-core identity and APIs for key management and saorsa-seal for encryption-at-rest. A 12-word seed phrase MUST be used to derive a master key for all key derivation operations across Osnova and backend components. Identity import/restore flows MUST follow saorsa-core guidance. In Client‑Server mode, user data MUST be end‑to‑end encrypted such that the server cannot decrypt user content; only routing/operational metadata may remain in plaintext.
 - **FR-008**: System MUST support at least 5 concurrent clients when running as a server without unacceptable degradation.
 - **FR-009**: System SHOULD provide core applications as separate components outside the Osnova shell (Post-MVP). For MVP, the framework focuses on running backend components and rendering frontend components; core apps are examples delivered independently.
@@ -134,6 +136,13 @@ As an end user, after installing Osnova I can browse and run distributed applica
 - **FR-025**: The launcher icon layout MUST be persisted per-identity so that ordering and placements are restored on relaunch.
 - **FR-026**: The Configuration component MUST exist and provide a screen and functions to configure the Osnova shell, including setting the launcher manifest address.
 - **FR-027**: The application manifest MUST include an icon URI referencing an Autonomi address (ant://...) that is used by the App Launcher for the app icon.
+
+#### Launcher Acceptance Criteria (MVP)
+- Mobile: long-press >= 500ms to enter reorder; drag to reposition; swipe pages left/right when more icons than fit; snap to closest grid cell on drop
+- Desktop: click+drag to reorder; scroll wheel or trackpad scroll in a continuous grid; snap to closest grid cell on drop
+- Persistence: order saved per-identity; restored on relaunch; changes debounced and saved within 1s of drop
+- Icons: pulled from manifest.iconUri (ant://...), fallback to default if unavailable
+
 
 - **Osnova Application**: A versioned manifest declaring frontend and backend components and required metadata.
 - **App Configuration**: User-visible preferences and settings per app; part of the encrypted data store; accessible and manageable by the user. These settings can also be saved to the storage network to restore settings when the identity is restored via saorsa-core on a new installation.
@@ -245,12 +254,61 @@ Configures the osnova installation on the particular device. Manages any passwor
 # Clarifications
 
 ## Pairing flow and security requirements (see canonical Clarifications above and FR-006/FR-007)
-Summary: pairing initiates from mobile (QR/manual), keys are exchanged, and an encrypted channel is established. On failure, show "Server not found" with retry.
+- Transport and security: Defer to saorsa-core secure channel for all Client–Server communication. NAT traversal and hole punching are handled by saorsa-core; no additional transport configuration is required in Osnova.
+- QR code content: The QR encodes only the 4-word identity address. Manual entry of the 4-word address is equivalent to scanning the QR.
+- Connection and handshake (best-guess defaults):
+  - Attempts: up to 3 connection attempts
+  - Per-attempt timeout: 5s
+  - Backoff: exponential 1s, 2s, 4s with 100–300ms jitter
+  - On success: keys are exchanged by saorsa-core and an end-to-end encrypted channel is established
+  - On failure: show "Server not found" with a Retry option, and offer manual entry of the 4-word address
 
 ## Encryption and key management (see FR-007)
 Summary: Identity and key management via saorsa-core AGENTS_API; data encrypted at rest via saorsa-seal. Identity import/restore flows follow saorsa-core guidance.
 
 ## MVP scope for core applications
+## Appendix: Example Manifests
+
+### Example: Osnova App Manifest (component) stored at address ant://b22491181ea6368fe5741d5a13ff39e2871da13cbed0dcb2ee77c3a5146723d3e9575dbe3c57bf7c769b30c847c1ce07
+```
+{
+  "id": "com.osnova.launcher",
+  "name": "Osnova Launcher",
+  "version": "0.1.0",
+  "iconUri": "ant://b2e82dcbcaecce2555979887cbf3aebe841c59376c723ef896befed3d45301c1a506864d806ffd6c77a54b84c1bf20db",
+  "description": "Default launcher for Osnova",
+  "publisher": "com.osnova",
+  "components": [
+    {
+      "id": "ant://b22491181ea6368fe5741d5a13ff39e2871da13cbed0dcb2ee77c3a5146723d3e9575dbe3c57bf7c769b30c847c1ce07",
+      "name": "Launcher",
+      "kind": "frontend",
+      "version": "0.1.0",
+      "platform": "desktop",
+      "hash": "blake3:AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA"
+    },
+    {
+      "id": "ant://a27748f54abc3ccd10d902fcf24ef591c855008dde1804d82b8b40482617c890dcebf16c4a75572d703b0253423f9ab1",
+      "name": "Configuration Control"
+      "kind": "backend",
+      "version": "0.1.0",
+      "target": "x86_64-unknown-linux-gnu",
+      "hash": "blake3:BBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBB"
+    }
+  ],
+  "metadata": {
+    "category": "system"
+  }
+}
+```
+
+### Example: Shell Configuration Snippet
+```
+{
+  "launcherManifestUri": "ant://b22491181ea6368fe5741d5a13ff39e2871da13cbed0dcb2ee77c3a5146723d3e9575dbe3c57bf7c769b30c847c1ce07"
+}
+```
+
 See Functional Requirements FR-009 for canonical scope and acceptance bullets.
 
 ## Protocols and interoperability constraints
