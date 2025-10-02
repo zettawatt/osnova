@@ -2,6 +2,7 @@
 
 This component interacts with osnova-core to handle cryto wallet functionality for osnova apps.
 It is also used to interact with the osnova server in the case of the client-server model.
+This component should always be running.
 
 ### OpenRPC methods
 

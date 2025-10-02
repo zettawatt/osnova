@@ -1,6 +1,7 @@
 # osnova-saorsa backend component
 
 This component is used to interact with the saorsa DHT and network.
+This component should always be running.
 
 ### OpenRPC methods
 

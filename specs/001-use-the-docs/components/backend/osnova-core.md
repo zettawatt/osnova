@@ -2,6 +2,7 @@
 
 This component is used to interact with the osnova shell application, in particular reading and writing data to the cache and data directories
 It is also used to interact with the osnova server in the case of the client-server model.
+This component should always be running.
 
 ### Data Storage
 

@@ -5,6 +5,7 @@ It exposes the public autonomi library APIs as OpenRPC functions to be utilized 
 This component is part of the osnova shell application stack, like the osnova-core backend component.
 By default this component will operate on the autonomi 'mainnet'.
 By adding the 'testnet = true' option, the component may operate on a local testnet instead of the mainnet.
+This component should always be running.
 
 ## Tokens
 
