@@ -48,7 +48,7 @@ Each version contains a manifest that has the following skeleton schema that is 
       "type": "array",
       "items": {
         "type": "object",
-        "required": ["id", "name", "kind", "version"],
+        "required": ["id", "target"],
         "properties": {
           "id": {"type": "string", "description": "Autonomi address of the backend component binary"},
           "target": {"type": "string", "description": "Target for compiled backend components following Rust's official target triple format (e.g., x86_64-unknown-linux-gnu)." },

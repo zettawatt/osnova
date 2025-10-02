@@ -48,7 +48,7 @@ Each version contains a manifest that has the following skeleton schema that is 
       "type": "array",
       "items": {
         "type": "object",
-        "required": ["id", "name", "kind", "version"],
+        "required": ["id", "platform"],
         "properties": {
           "id": {"type": "string", "description": "Autonomi address of the frontend component package"},
           "platform": {"type": "string", "description": "Platform that the frontend will run on. Could be Android, iOS, desktop, or all which is platform independent" },
