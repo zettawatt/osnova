@@ -71,6 +71,8 @@ This document consolidates Phase 0 research outcomes and clarifications captured
 
 4) Hosting/distribution network
 - Only the Autonomi network (and its Rust crate) will be used to store and fetch immutable components for MVP.
+- The autonomi crate will use the latest version, at the time of this writing it is v0.6.1
+- The autonomi crate repository is here: https://github.com/maidsafe/autonomi
 
 ## Remaining open questions
 - Status endpoint shape/protocol in server mode (HTTP JSON on localhost vs OpenRPC method vs both); minimal fields proposed: {status, version, uptime, components:[{name, status}]}

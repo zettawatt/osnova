@@ -34,6 +34,21 @@
 Osnova is a Tauri 2.x desktop/mobile application with a Svelte (TypeScript/HTML/CSS) UI and a Rust backend library. It loads application manifests and dynamically runs isolated frontend/backends as components (plugins). Frontends are static web apps (ZLIB-compressed tarballs) rendered in Tauri's WebView; backends are precompiled Rust binaries loaded via a Tauri plugin ABI (configure/start/stop/status). Components communicate over OpenRPC. Downloaded components are cached locally; production manifests reference Autonomi URIs (ant://). Modes: Stand-alone (all local) and Client-Server (remote backends over encrypted channels).
 
 Clarified decisions: End-to-end encryption of user data in Client-Server mode; support >= 5 concurrent clients per server (MVP); p95 launch->first meaningful render <= 2s; prompt fallback if p95 backend latency > 5s; MVP best-effort availability (no formal SLO).
+
+### Rust crates and libraries used
+This list contains crates and libraries that will be used, though it is not covering everything.
+Internalize the documentation and code for each of these to understand how these fit into the larger scope of the project.
+
+- autonomi
+  - version: v0.6.1
+  - github: https://github.com/maidsafe/autonomi
+- saorsa-core
+  - version: use main branch as it is under current development
+  - github: https://github.com/dirvine/saorsa-core
+- cocoon
+  - version: v0.4.3
+  - github: https://github.com/fadeevab/cocoon
+
 ## MVP Scope Adjustment
 - Osnova acts as a lightweight shell/launcher only.
 - Core applications (Launcher UI, Wallet/Fiat, Search, Files, Config Manager) exist as modular components outside the shell; not bundled into the MVP.
@@ -45,8 +60,6 @@ Clarified decisions: End-to-end encryption of user data in Client-Server mode; s
   - Basic UI: theme toggle; mobile bottom menu
 - Post-MVP: ship core apps as separate components; expand UI/agent features
 - MVP includes two minimal components delivered as external modules: (1) Configuration app (shell settings including launcher manifest), (2) App Launcher app (grid UI, default screen)
-
-
 
 Arguments considered: leverage @docs/plan.md and templates to setup the implementation plan.
 
@@ -336,9 +349,14 @@ When components are downloaded from the Autonomi network they are stored in the 
 ## Frontend Component Details
 
 Frontend components are written in TypeScript or JavaScript, HTML, and CSS. These are essentially just static web pages that are rendered within Tauri's WebKit in a tab in the frontend application.
+Tabs are managed with a browser-like tab API.
+Each frontend component gets its own WebView.
+There is no inter-tab communication between apps, each is isolated from each other.
+When the osnova shell app is closed or the individual osnova app tab is closed, the respective WebView process is also terminated.
 For distribution, the webapp is compressed using ZLIB into a tarball that can be distributed as a single file.
 When started, the web app is uncompressed and loaded into Tauri's WebKit, optionally passing configuration arguments from the Osnova application manifest.
 The webapp will use OpenRPC calls to interact with backend components' respective OpenRPC servers.
+See the `frontend-component.md` document for more details and requirements.
 
 ## Backend Component Details
 
@@ -354,12 +372,17 @@ The user's configuration cache contains the highest priority options, followed b
 Each backend component will leverage a consistent ABI to support the above mentioned commands.
 
 Backend components field requests from frontend components, but can also interact with other backend components over OpenRPC.
+See the `backend-component.md` document for more details and requirements.
 
 ### MPC Client
 
 Each backend component will run its own OpenRPC server to communicate to the outside world.
 In addition, it will provide an MPC client to enable direct connection of its public API to AI agents.
 AI agents will be able to leverage this functionality to iterate on ideas leveraging real world outputs from the component itself, not relying on just code and documentation.
+
+## Component Sandboxing and Permissions
+
+MVP assumes all components are trusted.
 
 ## Manifest Schema
 

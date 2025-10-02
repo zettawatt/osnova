@@ -88,7 +88,24 @@ To install a new osnova app, it will need to download the necessary backend comp
   
 After an osnova app is installed, the backend component is stored in the component cache directory.
 
+## Backend Component Loading
+
+Backend components are treated as binary plugins in the Tauri framework.
+Backend components are executed by the Tauri backend when an osnova app requiring them is started.
+
+FIXME: the intent here is to start each component with a common set of Tauri commands that can start, stop, and return the status of individual components. I do NOT want to use the Tauri shell option because this is not cross platform compatible. The solution must run on all platforms. The status for the components can be returned through an OpenRPC call, same with stop. Only the start method is special in that it actually starts the process or somehow runs it in the same Tauri process via FFI/dynamic linking. Come up with the best solution here that meets these requirements and describe it here.
+
+## Backend Component Lifecycle
+
+If a component crashes, its restart policy is defined by the setting in the configuration page.
+By default, backend components will restart automatically and throw up a warning 'toast' in the osnova shell GUI describing which component failed and the message that occurred.
+The component configuration may also set the restart policy to not restart the component on failure.
+By default, backend components, once started, will halt once all users' apps utilizing them are closed within the osnova shell app.
+The component configuration may also disable the auto-shutdown policy and keep the process running.
+
 ## Versioning and Usage in Osnova Shell
+
+FIXME: I want to use identical semantics to rust's Cargo.toml semantic versioning rules. Please update the app manifest documentation to allow for all of this functionality when describing component versions. There is no reason to reinvent the wheel here, let's just use what works and is proven.
 
 Different osnova apps may utilize the same backend components.
 It is undesirable to start a backend component OpenRPC server more than one time when multiple frontend components and users can share one service.
@@ -110,6 +127,8 @@ For server-client installations of osnova, if the client has admin privileges, t
 If the client does not have admin privileges, a popup will be displayed telling them that they need to contact a server administrator to restart the server.
 
 ## Local caching and data storage
+
+FIXME: as with the 'FIXME' in the 'Versioning and Usage in Osnova Shell' section, follow the same versioning semantics in the description below. If the running component is incompatible with a different app, create a new component user data directory and shared data directory as required.
 
 Backend components can store data on the local device or server running the component.
 By default, the configuration app will specify a local data directory.

@@ -41,5 +41,5 @@ Notes:
 ## Security considerations
 - Keys are derived and stored via saorsa-core identity APIs.
 - Channel security (transport, ciphers) is defined in the implementation plan; must provide mutual authentication and forward secrecy.
-- Rotation and revocation: devices can be revoked; pairing must be repeatable without data disclosure.
+- Rotation and revocation: devices can be revoked; pairing must be repeatable without data disclosure. Follow the saorsa-core documentation for how to do this.
 
