@@ -43,7 +43,7 @@ The osnova-core backend component provides the following OpenRPC methods for int
 
 #### Key Management (Cocoon-Based)
 - `keys.derive` - Derive a new key for a component at the next available index
-- `keys.deriveAtIndex` - Derive or retrieve a key at a specific index (idempotent) FIXME: the index here should take into account the component ID for component key derivation and/or wallet derivation index information in the case of a wallet component.
+- `keys.deriveAtIndex` - Derive or retrieve a key at a specific index (idempotent). The index is scoped per component ID, ensuring isolation between components. For wallet components, this supports BIP-44/BIP-32 derivation paths where the index represents the account/address index within the wallet's derivation hierarchy. The derivation uses HKDF-SHA256 with the master key, component ID as salt, and index as part of the info parameter.
 - `keys.getByPublicKey` - Retrieve the secret key corresponding to a public key
 - `keys.listForComponent` - List all derived keys for a specific component with their indexes and public keys
 
