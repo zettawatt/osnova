@@ -90,10 +90,156 @@ After an osnova app is installed, the backend component is stored in the compone
 
 ## Backend Component Loading
 
-Backend components are treated as binary plugins in the Tauri framework.
-Backend components are executed by the Tauri backend when an osnova app requiring them is started.
+Backend components are treated as binary plugins and executed as separate OS processes managed by the Tauri backend.
+This approach ensures cross-platform compatibility (Windows, macOS, Linux, Android, iOS) without relying on Tauri's shell plugin.
 
-FIXME: the intent here is to start each component with a common set of Tauri commands that can start, stop, and return the status of individual components. I do NOT want to use the Tauri shell option because this is not cross platform compatible. The solution must run on all platforms. The status for the components can be returned through an OpenRPC call, same with stop. Only the start method is special in that it actually starts the process or somehow runs it in the same Tauri process via FFI/dynamic linking. Come up with the best solution here that meets these requirements and describe it here.
+### Process-Based Component Execution
+
+Each backend component runs as an independent OS process:
+- **Lifecycle**: Spawned via `std::process::Command` in Rust
+- **Communication**: Components expose OpenRPC servers; Tauri backend acts as client
+- **Isolation**: Each component has its own process space, preventing crashes from affecting the shell
+- **Cross-Platform**: Uses standard Rust process APIs available on all platforms
+
+### Tauri Commands for Component Management
+
+The Tauri backend exposes three core commands to manage backend components:
+
+#### `component_start`
+**Tauri Command** (invoked from frontend or shell logic):
+```rust
+#[tauri::command]
+async fn component_start(
+    component_id: String,
+    config: serde_json::Value
+) -> Result<ComponentStartResult, String>
+```
+
+**Behavior**:
+1. Resolve component binary path from cache: `$COMPONENT_CACHE/backend/<component_id>/<version>/<target-triple>`
+2. Spawn the binary as a child process using `tokio::process::Command`
+3. Pass configuration via stdin or as CLI args (JSON-encoded)
+4. Component binary starts its OpenRPC server on a designated port (ephemeral or configured)
+5. Component writes endpoint info to stdout: `{"endpoint": "http://127.0.0.1:9001/rpc"}`
+6. Tauri backend parses endpoint and registers component in a `ComponentRegistry` (in-memory map)
+7. Store process handle (`Child`) for lifecycle management
+8. Return endpoint and process ID to caller
+
+**Return**:
+```json
+{
+  "endpoint": "http://127.0.0.1:9001/rpc",
+  "pid": 12345,
+  "status": "running"
+}
+```
+
+#### `component_stop`
+**Note**: Not a Tauri command. Components are stopped via OpenRPC call to their endpoint.
+
+**Behavior**:
+1. Frontend/shell sends OpenRPC `component.stop` request to the component's endpoint
+2. Component performs graceful shutdown (flush data, close connections)
+3. Component exits with status code 0
+4. Tauri backend detects process exit via `Child.wait()` and removes from registry
+5. If component doesn't exit within 5 seconds, Tauri backend sends SIGTERM (Unix) or TerminateProcess (Windows)
+
+**Why not a Tauri command?**: Components are independent services. They should handle their own shutdown logic via their public API (OpenRPC). This keeps the architecture decoupled.
+
+#### `component_status`
+**Note**: Not a Tauri command. Status is queried via OpenRPC call to the component's endpoint.
+
+**Behavior**:
+1. Frontend/shell sends OpenRPC `component.status` request to the component's endpoint
+2. Component returns health status: `{"status": "ok"|"degraded"|"error", "details": {...}}`
+3. If OpenRPC call fails (timeout, connection refused), Tauri backend can check if process is still running via `Child.try_wait()`
+
+### Component Binary Interface
+
+Each backend component binary must:
+1. **Accept configuration** via stdin or as a `--config <json>` CLI argument
+2. **Start an OpenRPC server** on an ephemeral port (or port from config)
+3. **Output endpoint** to stdout on startup: `{"endpoint": "http://127.0.0.1:<port>/rpc"}`
+4. **Implement required OpenRPC methods**:
+   - `component.status() -> {status, details}`
+   - `component.stop() -> {stopped: true}`
+5. **Exit gracefully** when `component.stop` is called
+
+### Component Registry (Tauri Backend State)
+
+The Tauri backend maintains a global component registry:
+```rust
+struct ComponentRegistry {
+    components: HashMap<String, RunningComponent>,
+}
+
+struct RunningComponent {
+    component_id: String,
+    version: String,
+    endpoint: String,
+    process: tokio::process::Child,
+    started_at: u64,
+}
+```
+
+**Operations**:
+- `register(component_id, endpoint, process)`: Add component after successful start
+- `get(component_id) -> Option<RunningComponent>`: Retrieve running component
+- `remove(component_id)`: Remove on stop or crash
+- `list() -> Vec<RunningComponent>`: List all running components (for `status.get`)
+
+### Crash Detection and Restart Policy
+
+The Tauri backend monitors component processes:
+1. Use `tokio::spawn` to await `Child.wait()` in the background
+2. When a process exits unexpectedly (non-zero status or no `component.stop` call):
+   - Log the crash with exit code and stderr
+   - Check component's restart policy (from configuration)
+   - If `restart_on_crash: true` (default), re-spawn the component via `component_start`
+   - Display a toast notification in the Osnova shell: "Component <name> crashed and was restarted"
+3. If `restart_on_crash: false`, display toast: "Component <name> stopped unexpectedly"
+
+### Example Component Start Flow
+
+**User action**: Launch an Osnova app that requires backend component `com.osnova.wallet` v1.2.0
+
+1. **Shell**: Checks `ComponentRegistry.get("com.osnova.wallet")`
+2. **If not running**: Calls `component_start("com.osnova.wallet", config)`
+3. **Tauri backend**:
+   ```rust
+   let binary_path = resolve_component_path("com.osnova.wallet", "1.2.0");
+   let mut child = Command::new(binary_path)
+       .arg("--config").arg(serde_json::to_string(&config)?)
+       .stdout(Stdio::piped())
+       .spawn()?;
+   
+   // Read endpoint from stdout
+   let endpoint = parse_endpoint_from_stdout(&mut child)?;
+   
+   // Register component
+   registry.register("com.osnova.wallet", endpoint.clone(), child);
+   
+   Ok(ComponentStartResult { endpoint, pid: child.id(), status: "running" })
+   ```
+4. **Shell**: Stores endpoint and uses it for all OpenRPC calls to the wallet component
+5. **Component**: Runs independently, serving OpenRPC requests
+
+### Why Not FFI/Dynamic Linking?
+
+While FFI (Foreign Function Interface) or dynamic linking (`.so`, `.dylib`, `.dll`) could allow in-process components, it has significant drawbacks:
+- **Crash Risk**: Component crash can crash entire Tauri process
+- **Platform Complexity**: Different dynamic library formats per OS; Android/iOS have restricted dynamic loading
+- **ABI Stability**: Rust does not guarantee stable ABI; version mismatches cause undefined behavior
+- **Security**: In-process code has full access to shell memory; harder to sandbox
+
+**Process-based approach** is simpler, safer, and more portable.
+
+### Cross-Platform Compatibility Notes
+
+- **Windows**: Uses `CreateProcess` under the hood; `Child.kill()` maps to `TerminateProcess`
+- **macOS/Linux**: Uses `fork`+`exec`; `Child.kill()` sends SIGKILL
+- **Android/iOS**: Tauri on mobile uses the same Rust process APIs; components are bundled as native executables in the app package
+- **Port Allocation**: On mobile, use localhost ephemeral ports. On desktop, allow configuration via component config.
 
 ## Backend Component Lifecycle
 
@@ -105,7 +251,67 @@ The component configuration may also disable the auto-shutdown policy and keep t
 
 ## Versioning and Usage in Osnova Shell
 
-FIXME: I want to use identical semantics to rust's Cargo.toml semantic versioning rules. Please update the app manifest documentation to allow for all of this functionality when describing component versions. There is no reason to reinvent the wheel here, let's just use what works and is proven.
+### Semantic Versioning (Cargo.toml Semantics)
+
+Backend component versions follow Rust's Cargo.toml semantic versioning rules (SemVer 2.0.0) with identical compatibility semantics.
+This proven system eliminates the need to reinvent version resolution logic.
+
+#### Version Specification in Manifests
+
+App manifests can specify component versions using Cargo-style version requirements:
+
+**Exact Version**:
+```json
+{"version": "1.2.3"}
+```
+Only version 1.2.3 is acceptable.
+
+**Caret Requirements** (default):
+```json
+{"version": "^1.2.3"}
+```
+Allows updates that do not modify the leftmost non-zero digit:
+- `^1.2.3` → `>= 1.2.3, < 2.0.0` (allows 1.2.4, 1.3.0, 1.9.9, but not 2.0.0)
+- `^0.2.3` → `>= 0.2.3, < 0.3.0` (0.x is special: minor version is breaking)
+- `^0.0.3` → `>= 0.0.3, < 0.0.4` (0.0.x: each patch is breaking)
+
+**Tilde Requirements**:
+```json
+{"version": "~1.2.3"}
+```
+Allows patch-level updates:
+- `~1.2.3` → `>= 1.2.3, < 1.3.0`
+- `~1.2` → `>= 1.2.0, < 1.3.0`
+
+**Wildcard**:
+```json
+{"version": "1.2.*"}
+```
+Equivalent to `~1.2.0`.
+
+**Comparison Operators**:
+```json
+{"version": ">= 1.2.3, < 2.0.0"}
+```
+Multiple requirements can be combined.
+
+### Version Resolution Algorithm
+
+When an app requests a backend component:
+
+1. **Parse version requirement** from manifest (e.g., `^1.2.3`)
+2. **Query local cache** for all versions of the component (e.g., 1.2.3, 1.2.5, 1.3.0, 2.0.0)
+3. **Filter compatible versions** using SemVer matching:
+   - `^1.2.3` matches: [1.2.3, 1.2.5, 1.3.0]
+   - Does not match: [2.0.0]
+4. **Select highest compatible version**: 1.3.0
+5. **Check if already running**:
+   - If `com.osnova.backend@1.3.0` is running → reuse it
+   - If `com.osnova.backend@1.2.5` is running → **upgrade** to 1.3.0 (shutdown old, start new)
+   - If `com.osnova.backend@2.0.0` is running → **incompatible**, start 1.3.0 in parallel (different major version)
+6. **Start component** if not running or needs upgrade
+
+### Component Sharing and Upgrade Policy
 
 Different osnova apps may utilize the same backend components.
 It is undesirable to start a backend component OpenRPC server more than one time when multiple frontend components and users can share one service.
@@ -128,31 +334,134 @@ If the client does not have admin privileges, a popup will be displayed telling 
 
 ## Local caching and data storage
 
-FIXME: as with the 'FIXME' in the 'Versioning and Usage in Osnova Shell' section, follow the same versioning semantics in the description below. If the running component is incompatible with a different app, create a new component user data directory and shared data directory as required.
+### Data Directory Versioning (Cargo SemVer Semantics)
 
 Backend components can store data on the local device or server running the component.
-By default, the configuration app will specify a local data directory.
-All component data will be stored in a sub-directory by user and component version.
-Components may also share data for the installation that is not user specific, this will be placed under a 'shared' sub directory.
-For example, if Bob is running an osnova app that contains contains backend component foo version 0.1.2 and Alice is running an osnova app that contains backend component bar version 1.2.1, the directory structure will look like this:
+Data directories follow SemVer compatibility rules: **major.minor** versions define the data directory path, while **patch** versions share the same directory.
 
+**Rationale**: Components with the same **major.minor** version are assumed to have compatible data formats. Patch updates (bug fixes) should not break data compatibility. Major or minor version bumps may introduce incompatible schema changes, requiring new directories.
+
+### Directory Structure
+
+By default, the configuration app specifies a local data directory.
+All component data is stored in a sub-directory hierarchy by user, component, and **major.minor** version.
+Components may also share installation-wide data (not user-specific) in a 'shared' sub-directory.
+
+**Path Template**:
+```
+<DATA_DIR>/
+  <user-id>/
+    <component-id>/
+      v<major>.<minor>/
+        (user-specific component data)
+  shared/
+    <component-id>/
+      v<major>.<minor>/
+        (shared component data)
+```
+
+### Compatibility Examples
+
+#### Example 1: Compatible Patch Upgrades
+**Bob** runs an Osnova app with backend component `foo` version **0.1.2**:
+- Data directory: `<DATA_DIR>/Bob/foo/v0.1/`
+
+Bob updates the app, which upgrades `foo` to **0.1.5**:
+- Data directory: `<DATA_DIR>/Bob/foo/v0.1/` (same directory)
+- Rationale: **0.1.5** is compatible with **0.1.2** (same **major.minor**)
+
+#### Example 2: Incompatible Minor Upgrade
+Bob's app upgrades `foo` to **0.2.0**:
+- Data directory: `<DATA_DIR>/Bob/foo/v0.2/` (new directory)
+- Rationale: **0.2.0** is incompatible with **0.1.x** per SemVer (for 0.x, minor is breaking)
+- The old `v0.1/` directory remains on disk for rollback or migration
+
+#### Example 3: Major Upgrade
+**Alice** runs an Osnova app with backend component `bar` version **1.2.1**:
+- Data directory: `<DATA_DIR>/Alice/bar/v1.2/`
+
+Alice upgrades to **2.0.0**:
+- Data directory: `<DATA_DIR>/Alice/bar/v2.0/` (new directory)
+- Rationale: **2.0.0** is incompatible with **1.x** (major version change)
+
+#### Example 4: Multiple Users and Components
+
+Current state:
+- **Bob**: runs `foo` v0.1.2
+- **Alice**: runs `bar` v1.2.1
+- **Shared data**: `foo` v0.1, `bar` v1.2
+
+Directory structure:
+```
 <DATA_DIR>/
  |-> Bob/
    |-> foo/
-       |-> v0.1.0/
-           |-> Bob's 'foo' component data
+       |-> v0.1/
+           |-> (Bob's 'foo' v0.1.x data)
  |-> Alice/
    |-> bar/
-       |-> v1.0.0/
-           |-> Alice's 'bar' component data
+       |-> v1.2/
+           |-> (Alice's 'bar' v1.2.x data)
  |-> shared/
    |-> foo/
-       |-> v0.1.0/
-           |-> shared 'foo' component data
+       |-> v0.1/
+           |-> (shared 'foo' v0.1.x data)
    |-> bar/
-       |-> v1.0.0/
-           |-> shared 'bar' component data
+       |-> v1.2/
+           |-> (shared 'bar' v1.2.x data)
+```
 
-Notes:
-- The most significant version specifies compatibility. So if Bob updated 'foo' to v0.1.2, the data directory stays the same. If foo is updated to v0.2.3, a new data directory is required. Likewise if Alice updated 'bar' to version v1.5.2, the same v1.0.0 directory is OK as it is compatible with the latest version.
+Alice upgrades `bar` to v1.5.2:
+- Data directory: `<DATA_DIR>/Alice/bar/v1.5/` (new directory, minor bump)
+- Shared data: `<DATA_DIR>/shared/bar/v1.5/` (new shared directory)
+
+### Incompatible Component Versions Running Concurrently
+
+If two apps require **incompatible** versions of the same component (different **major** or **major.minor**), the system will:
+1. Run **both versions** in parallel (each as a separate process)
+2. Each version uses its own data directory (e.g., `v1.2/` and `v2.0/`)
+3. Each version has its own OpenRPC endpoint
+4. Apps communicate with the version they requested
+
+**Example**:
+- App X requires `foo` **^1.2.0** → uses `foo` v1.3.0 (latest compatible)
+- App Y requires `foo` **^2.0.0** → uses `foo` v2.1.0 (latest compatible)
+- Both run simultaneously with separate data directories and endpoints
+
+### Data Migration
+
+When a component is upgraded to an incompatible version:
+- **Automatic Migration**: If the component provides a migration method (e.g., `migrate.from(old_version)`), Osnova can call it to copy/transform data from the old directory to the new one
+- **Manual Migration**: If no migration method exists, the component starts fresh with the new data directory. Users can export/import data manually via the component's UI
+- **Rollback**: Old data directories are retained (configurable retention policy in Configuration app) to allow downgrade
+
+### Directory Path Resolution Algorithm
+
+When a component starts, it queries its data directory:
+```rust
+fn get_component_data_dir(
+    user_id: &str,
+    component_id: &str,
+    version: &Version,  // semver::Version
+    shared: bool
+) -> PathBuf {
+    let major_minor = format!("v{}.{}", version.major, version.minor);
+    
+    if shared {
+        format!("<DATA_DIR>/shared/{}/{}/", component_id, major_minor).into()
+    } else {
+        format!("<DATA_DIR>/{}/{}/{}/", user_id, component_id, major_minor).into()
+    }
+}
+```
+
+**Given**: Component `com.osnova.wallet` version `1.5.3`, user `alice`
+- User data: `<DATA_DIR>/alice/com.osnova.wallet/v1.5/`
+- Shared data: `<DATA_DIR>/shared/com.osnova.wallet/v1.5/`
+
+### Notes
+
+- **Disk Space**: Multiple major.minor versions consume more disk space. The Configuration app shows storage usage and allows users to delete old version data directories.
+- **0.x Versions**: For 0.x versions, each **minor** bump is treated as breaking (per SemVer), so `v0.1/` and `v0.2/` are separate directories.
+- **Cleanup**: When a component version is uninstalled, its data directory can be deleted (with user confirmation) to reclaim space.
 

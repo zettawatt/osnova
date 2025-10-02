@@ -33,6 +33,12 @@ The osnova-core backend component provides the following OpenRPC methods for int
 - `identity.getSeedBackup` - Retrieve backup guidance for 12-word seed phrase
 - `pairing.start` - Initiate pairing with server using 4-word identity address (QR or manual)
 
+#### Key Management (Cocoon-Based)
+- `keys.derive` - Derive a new key for a component at the next available index
+- `keys.deriveAtIndex` - Derive or retrieve a key at a specific index (idempotent)
+- `keys.getByPublicKey` - Retrieve the secret key corresponding to a public key
+- `keys.listForComponent` - List all derived keys for a specific component with their indexes and public keys
+
 #### Storage Operations
 - `storage.read` - Read encrypted user data from local or server storage
 - `storage.write` - Write encrypted user data to local or server storage
