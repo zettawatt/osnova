@@ -15,13 +15,13 @@ In this sub-hierarchy, they are constructed the same as any independent backend 
 During development it does not make sense to make releases of backend components as these will be under constant flux.
 In the osnova app schema a directory path may be provided that points to the osnova backend component project.
 When ready to execute, the backend component developer will compile the backend component into a compatible binary for the target running the osnova shell application.
-Osnova shell, when launching an osnova app that points to this backend component, will look to the proper target releease directory and run the backend component binary within the plugin loader framework.
+Osnova shell, when launching an osnova app that points to this backend component, will look to the proper target release directory and run the backend component binary within the plugin loader framework.
 
 ### Release
 
 A backend component is released when a set of backend component binaries is written to the Autonomi network.
 There may be multiple component binaries for each version based on the desired target implementations.
-Each binary will be uploaded to the Autonomi network as a public file and the cooresponding Autonomi address location will be recorded in the component manifest.
+Each binary will be uploaded to the Autonomi network as a public file and the corresponding Autonomi address location will be recorded in the component manifest.
 
 ### Production
 
@@ -326,7 +326,7 @@ At the top of the menu there is a toggle selector that will enable viewing by co
 This view will show components used, not the apps that use them.
 Having both views gives the user the option the best view for whatever operation they are wanting to undertake.
 By default, the app will use the latest compatible component version.
-However, if there are incompatibilties, a user can force a component to be an older version for the system.
+However, if there are incompatibilities, a user can force a component to be an older version for the system.
 When a different version is requested, the user can click a checkbox that says 'force version' and a drop down for the component will be displayed with all of the compatible versions for that component.
 The user selects which component version they want to use.
 For standalone installations of osnova, it will tell the user to restart osnova to use this newly specified version in a dialog pop up.

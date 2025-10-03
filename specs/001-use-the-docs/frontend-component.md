@@ -21,7 +21,7 @@ When ready to execute, the WebKit will render the index.html file, which will sp
 
 A frontend component is released when the frontend project is compiled into a single ZLIB compressed package and written to the Autonomi network.
 There may be multiple packages for each version based on the desired target platform.
-Each package will be uploaded to the Autonomi network as a public file and the cooresponding Autonomi address location will be recorded in the component manifest.
+Each package will be uploaded to the Autonomi network as a public file and the corresponding Autonomi address location will be recorded in the component manifest.
 
 ### Production
 

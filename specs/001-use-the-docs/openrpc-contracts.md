@@ -265,7 +265,7 @@ Generate TypeScript client from OpenRPC:
 export class OsnovaClient {
   constructor(private endpoint: string) {}
 
-  async keysDerve(
+  async keysDerive(
     componentId: string,
     keyType: 'ml_dsa' | 'ed25519' | 'secp256k1'
   ): Promise<Key> {

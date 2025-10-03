@@ -343,7 +343,7 @@ Each backend component is a separate rust sub project with Cargo.toml, its own l
 Each frontend component is the uncompressed static web application.
 Components are dynamically loadable into Osnova and operate like plugins.
 The backend components are precompiled Rust binaries to the host architecture.
-The frontend comoponents are static web applications, comprised of a ZLIB compressed TypeScript/JavaScript, HTML, and CSS tarball for easy distribution.
+The frontend components are static web applications, comprised of a ZLIB compressed TypeScript/JavaScript, HTML, and CSS tarball for easy distribution.
 The backend and frontend core components can be compiled and packaged by running
 
 Each backend component is loaded via a plugin architecture by Tauri.
@@ -398,7 +398,7 @@ Local development takes source code as is without compression to enable easier d
 
 # Stand-alone and Client-Server Modes
 
-In stand-alone mode, all backend and frontend components for Osnova apps are run on the local device with inter-process communication occuring locally using the most efficient local only OpenRPC transport.
+In stand-alone mode, all backend and frontend components for Osnova apps are run on the local device with inter-process communication occurring locally using the most efficient local-only OpenRPC transport.
 
 In client-server mode, the workload is split across the client and the server.
 The client will run (and cache) the frontend components on the local device.
