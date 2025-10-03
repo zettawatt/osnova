@@ -1,11 +1,8 @@
-# osnova-wallet backend component
+# osnova-wallet (built‑in service)
 
-This component interacts with osnova-core to handle crypto wallet functionality for osnova apps.
-It is also used to interact with the osnova server in the case of the client-server model.
+This in‑process Rust module provides crypto wallet functionality for Osnova. In stand-alone and server modes it may expose an RPC surface to external components; internally it is a library.
 
-**MVP Status**: This component is **REQUIRED for MVP** as it provides payment functionality for Autonomi network uploads.
-
-This component should always be running.
+**MVP Status**: This service is **REQUIRED for MVP** as it provides payment functionality for Autonomi network uploads.
 
 ## Overview
 

@@ -1,5 +1,8 @@
 # OpenRPC Conventions (MVP)
 
+Note (2025-10-03): OpenRPC applies to external RPC surfaces in both stand-alone and server modes (for external app components). Core services and GUI screens are now built into the Osnova shell and communicate via in-process Rust APIs; when exposed externally, they mirror these contracts over OpenRPC.
+
+
 ## Error handling
 - Use JSON-RPC standard errors where applicable:
   - -32600 Invalid Request

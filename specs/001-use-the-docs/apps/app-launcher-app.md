@@ -3,12 +3,12 @@
 This app is bundled with the osnova shell application.
 The purpose is to organize and launch osnova apps.
 
-## Frontend Component
+## Built-in GUI Module
 
-The frontend component is the osnova-launcher frontend component.
-See the `components/frontend/osnova-launcher.md` file for more information
+The Launcher is a built-in GUI module.
+See `components/frontend/osnova-launcher.md` for layout and behavior.
 
-## Backend Component
+## Built-in Service
 
-The backend component is the osnova-core backend component.
-See the `components/backend/osnova-core.md` file for more information
+Launcher relies on the built-in osnova-core service for app listing, launch, and layout persistence.
+See `components/backend/osnova-core.md` for more information.

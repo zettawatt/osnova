@@ -70,10 +70,9 @@ In this way, we build up an immutable list of collateral for each osnova app spe
 
 ## Osnova App Installation
 
-To install a new osnova app, it will need to download the necessary components.
-See the respective frontend-component.md and backend-component.md files for more information on the process to retrieve and manage components.
-Once all components are found, the icon and any additional metadata will be downloaded and added to the app configuration.
-The icon will then be added to the app screen.
+To install a new Osnova app, the shell loads the application manifest and fetches any app‑supplied assets or components referenced therein.
+Core services and core screens are built into the shell and do not require fetching.
+Once app assets are resolved, the icon and any additional metadata will be downloaded and added to the app configuration. The icon is then added to the app screen.
 
 ## Local caching and data storage
 

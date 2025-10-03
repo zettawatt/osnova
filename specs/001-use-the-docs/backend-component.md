@@ -1,6 +1,7 @@
-# Backend Components
+# External Backend Components
 
 This document describes the structure and lifecycle of backend components.
+This document does not cover internal osnova applications
 
 ## Lifecycle
 

@@ -10,7 +10,7 @@ Osnova follows Test-Driven Development (TDD) as mandated by the Constitution. Al
 - **Formatter**: `cargo fmt` - Enforce consistent code style
 - **Linter**: `cargo clippy` - Catch common mistakes and enforce best practices
 - **Unit Tests**: `cargo test` - Test individual functions and modules
-- **Integration Tests**: `cargo test --test '*'` - Test component interactions
+- **Integration Tests**: `cargo test --test '*'` - Test service interactions (built-in) and component interactions (app-supplied)
 - **Coverage**: `cargo tarpaulin` or `cargo llvm-cov` - Measure code coverage
 
 **Pre-commit Requirements**:
@@ -81,10 +81,10 @@ fn test_apps_list_contract() {
 }
 ```
 
-### Component Integration Testing
-- **Scope**: Test full component lifecycle (fetch → start → call → stop)
+### Service/Component Integration Testing
+- **Scope**: For built-in services, test in-process service lifecycle and inter-service behavior. For app-supplied components, test full lifecycle (fetch → start → call → stop).
 - **Mock Dependencies**: Mock Autonomi network for CI environments
-- **Test Components**: Create minimal test components (e.g., echo server)
+- **Test Components**: Create minimal test components (e.g., echo server) for app-supplied flows
 - **Location**: `tests/integration/` directory
 
 **Mock Autonomi Pattern**:
@@ -135,7 +135,7 @@ tests/
 │   ├── test_config.rs
 │   ├── test_pairing.rs
 │   └── test_identity.rs
-├── integration/        # Component integration tests
+├── integration/        # Service/Component integration tests
 │   ├── test_component_lifecycle.rs
 │   ├── test_manifest_loading.rs
 │   ├── test_pairing_flow.rs

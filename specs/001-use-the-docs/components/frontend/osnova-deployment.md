@@ -1,9 +1,8 @@
-# osnova-deployment component
+# osnova-deployment (built‑in GUI module)
 
-It is written in Svelte as a static web app.
-It is a single page application.
+Architecture Update (2025-10-03): This tool is now part of the Osnova shell GUI and no longer a separate frontend component. It continues to orchestrate build/package/deploy by driving the built‑in bundler service.
 
-**MVP Status**: This component is **REQUIRED for MVP** as it provides the developer interface for building and deploying Osnova applications.
+**MVP Status**: This module is **REQUIRED for MVP** as it provides the developer interface for building and deploying Osnova applications.
 
 ## Overview
 

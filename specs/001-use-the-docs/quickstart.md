@@ -9,7 +9,7 @@ This Quickstart outlines how to validate the feature at a documentation and desi
 ## Manual walkthrough
 1) App Launcher flow
 - Given a fresh install, launch an app from the Launcher
-- Expect: manifest is loaded, components fetched, UI renders in a new tab or window
+- Expect: manifest is loaded, any app assets are fetched (core services are built‑in), UI renders in a new tab or window
 
 2) Client-Server mode
 - Configure server address and complete pairing

@@ -68,7 +68,7 @@ When creating this spec from a user prompt:
 As an end user, after installing Osnova I can browse and run distributed applications in a modern, browser‑like UI (tabs and windows) across platforms. I can optionally connect a mobile device to my home server to offload backend workloads while keeping the client responsive.
 
 ### Acceptance Scenarios
-1. **Given** a fresh installation with no server configured, **When** the user launches an Osnova app from the App Launcher, **Then** Osnova loads the app’s manifest, fetches and starts all listed components, and renders the UI in a new tab/window.
+1. **Given** a fresh installation with no server configured, **When** the user launches an Osnova app from the App Launcher, **Then** Osnova loads the app’s manifest, fetches any app assets (core services are built‑in), and renders the UI in a new tab/window.
 2. **Given** a server address is configured and pairing is completed, **When** the user uses Osnova on a mobile device, **Then** backend operations execute on the configured server while the mobile client remains responsive.
 
 ### Edge Cases
@@ -103,14 +103,14 @@ As an end user, after installing Osnova I can browse and run distributed applica
   - Establishment of an end-to-end encrypted channel after pairing; device data encrypted with its key
 - **FR-007**: System MUST isolate user data between clients and encrypt data at rest on both server and stand‑alone devices using saorsa-core identity and APIs for key management and saorsa-seal for encryption-at-rest. A 12-word seed phrase MUST be used to derive a master key for all key derivation operations across Osnova and backend components. Identity import/restore flows MUST follow saorsa-core guidance. In Client‑Server mode, user data MUST be end‑to‑end encrypted such that the server cannot decrypt user content; only routing/operational metadata may remain in plaintext.
 - **FR-008**: System MUST support at least 5 concurrent clients when running as a server without unacceptable degradation.
-- **FR-009**: System SHOULD provide core applications as separate components outside the Osnova shell (Post-MVP). For MVP, the framework focuses on running backend components and rendering frontend components; core apps are examples delivered independently.
+- **FR-009**: Core applications (Launcher, Configuration, Deployment) are part of the Osnova shell GUI. Post‑MVP, externalizing these into separate components is optional, not required.
   - App Launcher: list available apps; launch selected app by loading its manifest and opening in a tab/window; display loading/errors.
   - Crypto Wallet & Fiat Bridge: view balances; receive and send; basic swap; initiate fiat on/off‑ramp via supported providers.
   - Search: single omnibox; fetch results from distributed sources; context‑aware presentation for apps, media, images, and web pages.
   - File Manager: list downloaded/uploaded files; open file location; basic actions (open, rename, delete).
   - Configuration Manager: set server address; manage pairing; manage the identity address (4-word) and back up/restore the 12-word seed phrase; manage accounts and basic security settings; manage per‑app configuration and cached data per user (view, export, reset, delete).
 - **FR-010**: Search MUST be context‑aware, adjusting results format for apps, media, images, or web pages.
-- **FR-011**: Components MUST communicate via stable, generic request/response interfaces independent of Osnova, enabling portability across runtimes; components run isolated from the host app.
+- **FR-011**: Built‑in core services expose stable Rust APIs. External components MUST communicate via stable, generic request/response interfaces independent of Osnova and run isolated from the host app.
 - **FR-012**: Each component version MUST be immutable and retrievable from a permanent, content‑addressed storage network. The specific network(s) are implementation details documented in the plan.
 - **FR-013**: System MUST persist per-app configuration and cached data as part of the user-managed encrypted data store, accessible to the end user.
 - **FR-014**: Configuration Manager MUST let users browse, view, export, reset, and delete per-app configuration and cached data for their account, with clear warnings and confirmation for destructive actions.
@@ -194,6 +194,8 @@ Osnova works on a principle of dynamically loaded components. This is the genera
 There are 2 basic types of components:
  - Backend components contain the business logic, interacting with the host system, other backend components, or various distributed networks.
  - Frontend components contain the graphical frontend interface for the osnova application that the user interacts with. Frontend components interact with backend components to interact with network services and access system resources.
+
+Update (2025-10-03): The Osnova shell’s own core services and screens (autonomi, wallet, saorsa, core, bundler; Launcher, Configuration, Deployment) are built into the shell. References to “components” in this spec refer to app‑supplied components, if any. App‑supplied components call built‑in services via OpenRPC in both stand‑alone (local IPC) and server modes.
 
 Components communicate with one another using generic protocols outside of the Osnova application itself. In this way, if Osnova were to stop development or be merged into another product, the original Osnova applications could be run without issues.
 

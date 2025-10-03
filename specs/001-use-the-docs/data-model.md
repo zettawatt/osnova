@@ -2,6 +2,9 @@
 
 This document captures entities, fields, and relationships extracted from the feature spec.
 
+
+Architecture Update (2025-10-03): Built-in core services and core screens are part of the Osnova shell and are not represented as ComponentRef entries. ComponentRef applies to app-supplied components only (frontend/backend) referenced by application manifests.
+
 ## Entities
 
 ### OsnovaApplication
@@ -9,7 +12,7 @@ This document captures entities, fields, and relationships extracted from the fe
 - name: string
 - version: semver
 - manifestUrl: string (permanent storage URL)
-- components: [ComponentRef]
+- components: [ComponentRef] (app-supplied; excludes built-in core services/screens)
 - metadata: map<string,string>
 
 ### ComponentRef

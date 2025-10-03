@@ -3,16 +3,17 @@
 This app is bundled with the osnova shell application.
 The purpose is to enable developers to easily deploy osnova apps and their components
 
-## Frontend Component
+## Built-in GUI Module
 
-The frontend component is the osnova-launcher frontend component.
-See the `components/frontend/osnova-deployment.md` file for more information
+Deployment is a built-in GUI module.
+See `components/frontend/osnova-deployment.md` for layout and behavior
 
-## Backend Components
+## Built-in Services
 
-There are several backend components in use for this app: 
+This module uses several built-in services:
+- osnova-core
+- osnova-autonomi
+- osnova-wallet
+- osnova-bundler
 
-See the `components/backend/osnova-core.md` file for more information
-See the `components/backend/osnova-autonomi.md` file for more information
-See the `components/backend/osnova-wallet.md` file for more information
-See the `components/backend/osnova-bundler.md` file for more information
+See their respective docs under `components/backend/` for details.

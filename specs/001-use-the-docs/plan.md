@@ -31,7 +31,7 @@
 - Phase 3-4: Implementation execution (manual or via tools)
 
 ## Summary
-Osnova is a Tauri 2.x desktop/mobile application with a Svelte (TypeScript/HTML/CSS) UI and a Rust backend library. It loads application manifests and dynamically runs isolated frontend/backends as components (plugins). Frontends are static web apps (ZLIB-compressed tarballs) rendered in Tauri's WebView; backends are precompiled Rust binaries loaded via a Tauri plugin ABI (configure/start/stop/status). Components communicate over OpenRPC. Downloaded components are cached locally; production manifests reference Autonomi URIs (ant://). Modes: Stand-alone (all local) and Client-Server (remote backends over encrypted channels).
+Osnova is a Tauri 2.x desktop/mobile application with a Svelte (TypeScript/HTML/CSS) UI and a Rust backend library. Core services (autonomi, wallet, saorsa, core, bundler) and core screens (Launcher, Configuration, Deployment) are built into the shell and communicate via in-process Rust APIs. Osnova still loads application manifests for third-party apps and may run app-supplied components when present. When external app components are present, built-in services expose OpenRPC endpoints that mirror the in-process APIs in both stand-alone (local IPC transport) and server modes. Downloaded app assets/components are cached locally; production manifests reference Autonomi URIs (ant://). Modes: Stand-alone (all local; external components call via local OpenRPC) and Client-Server (external RPC exposed on server with encrypted channels).
 
 Clarified decisions: End-to-end encryption of user data in Client-Server mode; support >= 5 concurrent clients per server (MVP); p95 launch->first meaningful render <= 2s; prompt fallback if p95 backend latency > 5s; MVP best-effort availability (no formal SLO).
 
@@ -50,16 +50,14 @@ Internalize the documentation and code for each of these to understand how these
   - github: https://github.com/fadeevab/cocoon
 
 ## MVP Scope Adjustment
-- Osnova acts as a lightweight shell/launcher only.
-- Core applications (Launcher UI, Wallet/Fiat, Search, Files, Config Manager) exist as modular components outside the shell; not bundled into the MVP.
+- Osnova ships core screens (Launcher, Configuration, Deployment) and core services (core/autonomi/wallet/saorsa/bundler) built into the shell.
 - MVP capabilities:
-  - Load manifests; cache components; launch frontend components in WebView
-  - Manage backend plugin lifecycle (configure/start/stop/status)
+  - Load manifests; cache app assets; launch app UIs in WebView (core screens are built-in)
+  - Provide in-process Rust APIs for core services; expose OpenRPC in stand-alone and server modes as needed (for external components)
   - Identity onboarding (saorsa-core), encryption-at-rest (saorsa-seal)
   - OpenRPC host: status.get, identity.*, apps.launch/list, config.setServer, pairing.start
   - Basic UI: theme toggle; mobile bottom menu
-- Post-MVP: ship core apps as separate components; expand UI/agent features
-- MVP includes two minimal components delivered as external modules: (1) Configuration app (shell settings including launcher manifest), (2) App Launcher app (grid UI, default screen)
+  - Provide support for external app-supplied components; expand UI/agent features
 
 Arguments considered: leverage @docs/plan.md and templates to setup the implementation plan.
 
@@ -99,6 +97,9 @@ Arguments considered: leverage @docs/plan.md and templates to setup the implemen
 - Component packaging: frontend ZLIB tarballs; backend precompiled Rust plugin binaries
 - Plugin ABI (backend components): component_configure, component_start, component_stop, component_status
 - Communication: OpenRPC (JSON-RPC 2.0) between frontends and backends; backend components may also call each other
+
+Note (2025-10-03): The following packaging/ABI details apply to app-supplied components or external RPC surfaces. Built-in core services/screens are in-process and do not require component packaging.
+
 - Caching: downloaded components cached locally
 - Manifest: JSON; prod uses Autonomi URIs (ant://); dev can reference local dirs (no compression)
 - Modes: Stand-alone (local IPC transport) and Client-Server (backend OpenRPC servers on server with encrypted channel to client)
@@ -330,6 +331,9 @@ A light/dark mode selection button should be located in the configuration window
 
 The backend business logic will be written in Rust. The core Osnova logic will be packaged into a library that can be used by other projects if desired.
 The Tauri commands will simply call the Osnova library public functions.
+
+
+[Architecture Update 2025-10-03] Core services/screens are in-process. The following "Component Architecture" section describes the historical plugin model and applies to app-supplied components only.
 
 # Component Architecture
 

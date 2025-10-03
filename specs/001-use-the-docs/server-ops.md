@@ -1,5 +1,8 @@
 # Server Operations and Status (MVP)
 
+
+Note (2025-10-03): In server mode, the status surface reports built-in services and, when hosted, app-supplied components. The schema below uses "services" to cover both.
+
 ## status.get (read-only)
 ```json
 {
@@ -13,12 +16,13 @@
         "status": {"type": "string", "enum": ["ok", "degraded", "error"]},
         "version": {"type": "string"},
         "uptime": {"type": "integer"},
-        "components": {
+        "services": {
           "type": "array",
           "items": {
             "type": "object",
             "properties": {
               "name": {"type": "string"},
+              "kind": {"type": "string", "enum": ["built_in_service", "app_component"]},
               "status": {"type": "string", "enum": ["ok", "degraded", "error"]}
             },
             "required": ["name", "status"]

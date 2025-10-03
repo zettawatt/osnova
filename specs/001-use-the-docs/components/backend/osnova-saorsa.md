@@ -1,14 +1,12 @@
-# osnova-saorsa backend component
+# osnova-saorsa (built‑in service)
 
-This component is used to interact with the saorsa DHT and network.
+This service provides access to the saorsa DHT and networking as an in‑process Rust module.
 
-**MVP Status**: This component is **REQUIRED for MVP** as it provides the foundational identity and networking layer.
-
-This component should always be running.
+**MVP Status**: This service is **REQUIRED for MVP** as it provides the foundational identity and networking layer.
 
 ## Overview
 
-The osnova-saorsa component provides OpenRPC access to saorsa-core's decentralized identity, presence, messaging, and storage capabilities. It serves as the bridge between Osnova applications and the saorsa-core P2P networking layer.
+The osnova‑saorsa service provides access to saorsa‑core's decentralized identity, presence, messaging, and storage capabilities. It can be exposed over RPC in standalone and server modes; internally, it is a library used by the shell.
 
 ### Key Features
 
@@ -39,7 +37,7 @@ The osnova-saorsa component provides OpenRPC access to saorsa-core's decentraliz
 
 ### OpenRPC methods
 
-The osnova-saorsa backend component provides the following OpenRPC methods:
+When exposed externally (e.g., server mode), the osnova-saorsa service provides the following OpenRPC methods:
 
 ## Identity Management
 

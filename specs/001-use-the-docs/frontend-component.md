@@ -1,6 +1,7 @@
 # Frontend Components
 
-This document describes the structure and lifecycle of frontend components.
+This document describes the structure and lifecycle of external frontend components.
+This document does not apply to core graphical elements included as part of the osnova shell application
 
 ## Lifecycle
 

@@ -3,12 +3,12 @@
 This app is bundled with the osnova shell application.
 The purpose is to configure the osnova shell application.
 
-## Frontend Component
+## Built-in GUI Module
 
-The frontend component is the osnova-configuration frontend component.
-See the `components/frontend/osnova-configuration.md` file for more information
+Configuration is a built-in GUI module.
+See `components/frontend/osnova-configuration.md` for layout and behavior
 
-## Backend Component
+## Built-in Service
 
-The backend component is the osnova-core backend component.
-See the `components/backend/osnova-core.md` file for more information
+Configuration relies on the built-in osnova-core service for configuration storage and identity/pairing flows.
+See `components/backend/osnova-core.md` for more information

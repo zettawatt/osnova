@@ -1,7 +1,6 @@
-# osnova-launcher component
+# osnova-launcher (built‑in GUI module)
 
-It is written in Svelte as a static web app.
-It is a single page application.
+Architecture Update (2025-10-03): The Launcher is built into the Osnova shell GUI and is no longer a separately packaged frontend component.
 
 ## Layout
 

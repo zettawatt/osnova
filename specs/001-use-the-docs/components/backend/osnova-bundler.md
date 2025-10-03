@@ -1,13 +1,8 @@
-# osnova-bundler backend component
+# osnova-bundler (built‑in service)
 
-This component is used to perform several functions:
-- compile osnova backend components to various targets and uploads them to the autonomi network
-- package frontend components into a ZLIB compressed tarball and uploads them to the autonomi network
-- generate component and application manifest files and uploads them to the autonomi network
+Architecture Update (2025-10-03): The bundler is integrated into the Osnova shell as an in‑process Rust service. It continues to build/package/deploy Osnova apps and, when needed, can expose an RPC surface in stand-alone and server modes. Uploads use the built‑in autonomi and wallet services.
 
-This component leverages the osnova-autonomi component to perform the autonomi upload operations and the osnova-wallet to pay for these uploads.
-
-**MVP Status**: This component is **REQUIRED for MVP** as it provides the tooling to build and deploy Osnova applications.
+**MVP Status**: This service is **REQUIRED for MVP** as it provides the tooling to build and deploy Osnova applications.
 
 ## Overview
 

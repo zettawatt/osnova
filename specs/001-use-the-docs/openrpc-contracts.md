@@ -4,15 +4,18 @@
 **Status**: Approved for MVP
 **Decision**: Generate consolidated contracts/openrpc.json from component specifications during build
 
+Amendment (2025-10-03): Core services/screens are integrated into the Osnova shell. OpenRPC contracts now describe the external RPC surfaces exposed by these built-in services (in stand-alone and server modes) and by any app-supplied components. The in-process Rust APIs are the primary source of truth; OpenRPC mirrors them when exposed.
+
+
 ## Overview
 
-The OpenRPC contracts define the JSON-RPC 2.0 API surface for all Osnova components. Rather than manually maintaining a single large `contracts/openrpc.json` file, we generate it from the component specification documents during the build process.
+The OpenRPC contracts define the JSON-RPC 2.0 API surface for external endpoints exposed by Osnova in stand-alone and server modes and any app-supplied components. Rather than manually maintaining a single large `contracts/openrpc.json` file, we generate it from the service specification documents during the build process.
 
 ## Contract Generation Strategy
 
 ### Source of Truth
 
-**Component Specification Files** are the source of truth:
+**Service Specification Files** are the source of truth:
 - `components/backend/osnova-core.md`
 - `components/backend/osnova-wallet.md`
 - `components/backend/osnova-saorsa.md`
@@ -58,17 +61,17 @@ fn main() {
         "components/backend/osnova-autonomi.md",
         "components/backend/osnova-bundler.md",
     ];
-    
+
     let mut openrpc_doc = OpenRpcDocument::new();
-    
+
     for spec_path in specs {
         let methods = extract_openrpc_methods(spec_path)?;
         openrpc_doc.add_methods(methods);
     }
-    
+
     openrpc_doc.validate()?;
     openrpc_doc.write_to_file("contracts/openrpc.json")?;
-    
+
     generate_rust_stubs(&openrpc_doc)?;
     generate_typescript_client(&openrpc_doc)?;
 }
@@ -99,7 +102,7 @@ fn main() {
         },
         {
           "name": "keyType",
-          "schema": { 
+          "schema": {
             "type": "string",
             "enum": ["ml_dsa", "ed25519", "secp256k1"]
           },
@@ -170,18 +173,18 @@ fn main() {
 
 ### Namespace Structure
 
-All methods follow the pattern: `<component>.<operation>`
+All methods follow the pattern: `<service>.<operation>`
 
-**Core Component** (`osnova-core`):
+**Core Service** (`osnova-core`):
 - `keys.*` - Key management
 - `config.*` - Configuration
 - `storage.*` - Data storage
 - `component.*` - Component lifecycle
 
-**Wallet Component** (`osnova-wallet`):
+**Wallet Service** (`osnova-wallet`):
 - `wallet.*` - Wallet operations
 
-**Saorsa Component** (`osnova-saorsa`):
+**Saorsa Service** (`osnova-saorsa`):
 - `saorsa.identity.*` - Identity management
 - `saorsa.device.*` - Device management
 - `saorsa.presence.*` - Presence
@@ -195,7 +198,7 @@ All methods follow the pattern: `<component>.<operation>`
 - `saorsa.groupCall.*` - Group calls
 - `saorsa.transport.*` - Transport
 
-**Autonomi Component** (`osnova-autonomi`):
+**Autonomi Service** (`osnova-autonomi`):
 - `autonomi.client.*` - Client management
 - `autonomi.chunk.*` - Chunk operations
 - `autonomi.pointer.*` - Pointer operations
@@ -205,7 +208,7 @@ All methods follow the pattern: `<component>.<operation>`
 - `autonomi.graph.*` - GraphEntry operations
 - `autonomi.vault.*` - Vault operations
 
-**Bundler Component** (`osnova-bundler`):
+**Bundler Service** (`osnova-bundler`):
 - `bundler.backend.*` - Backend compilation
 - `bundler.frontend.*` - Frontend packaging
 - `bundler.manifest.*` - Manifest operations
@@ -227,7 +230,7 @@ pub trait KeysApi {
         component_id: String,
         key_type: KeyType,
     ) -> Result<Key, Error>;
-    
+
     async fn derive_at_index(
         &self,
         component_id: String,
@@ -261,21 +264,21 @@ Generate TypeScript client from OpenRPC:
 // Generated code
 export class OsnovaClient {
   constructor(private endpoint: string) {}
-  
+
   async keysDerve(
     componentId: string,
     keyType: 'ml_dsa' | 'ed25519' | 'secp256k1'
   ): Promise<Key> {
     return this.call('keys.derive', { componentId, keyType });
   }
-  
+
   async walletGetBalance(
     address: string,
     network: 'mainnet' | 'arbitrum'
   ): Promise<Balance> {
     return this.call('wallet.getBalance', { address, network });
   }
-  
+
   private async call(method: string, params: any): Promise<any> {
     const response = await fetch(this.endpoint, {
       method: 'POST',
@@ -304,17 +307,17 @@ Generate contract tests from OpenRPC examples:
 #[cfg(test)]
 mod contract_tests {
     use super::*;
-    
+
     #[tokio::test]
     async fn test_keys_derive() {
         let api = KeysApiImpl::new();
-        
+
         // From OpenRPC example
         let result = api.derive(
             "com.example.app".to_string(),
             KeyType::MlDsa,
         ).await.unwrap();
-        
+
         assert_eq!(result.key_type, KeyType::MlDsa);
         assert!(!result.public_key.is_empty());
     }
@@ -340,7 +343,7 @@ impl ContractValidator {
         validate_params(params, &method_def.params)?;
         Ok(())
     }
-    
+
     pub fn validate_response(
         &self,
         method: &str,

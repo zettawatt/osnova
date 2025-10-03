@@ -1,8 +1,6 @@
-# osnova-core backend component
+# osnova-core (built‑in service)
 
-This component is used to interact with the osnova shell application, in particular reading and writing data to the cache and data directories
-It is also used to interact with the osnova server in the case of the client-server model.
-This component should always be running.
+This is an in‑process Rust module that provides core shell services (apps, config, identity, storage, UI, server status). It is no longer a separate backend component process.
 
 ### Data Storage
 
@@ -13,7 +11,7 @@ There is no automated cache cleanup mechanism.
 
 ### OpenRPC methods
 
-The osnova-core backend component provides the following OpenRPC methods for interacting with the osnova shell application:
+When exposed externally (stand-alone or server mode), the osnova-core service provides the following OpenRPC methods for interacting with the Osnova shell application:
 
 #### Application Management
 - `apps.list` - List all installed applications with metadata (id, name, version, iconUri, manifestUri)

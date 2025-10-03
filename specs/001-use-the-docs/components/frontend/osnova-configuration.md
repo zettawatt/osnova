@@ -1,7 +1,9 @@
-# osnova-configuration component
+# osnova-configuration (built‑in GUI module)
 
-It is written in Svelte as a static web app.
-It is a single page application.
+Architecture Update (2025-10-03): This screen is now part of the Osnova shell GUI and no longer packaged/deployed as a separate frontend component. The features below remain, but packaging/manifest references do not apply to this built‑in screen.
+
+Note (2025-10-03): External app components interact with these configuration APIs via OpenRPC when the shell exposes them in stand-alone (local IPC) and server modes.
+
 
 ## Layout
 
@@ -29,7 +31,7 @@ It is a single page application.
 
 ### General Settings
 - **Display Name**: Edit user display name associated with identity
-- **Launcher Configuration**: 
+- **Launcher Configuration**:
   - View and edit launcherManifestUri (ant:// address or dev path)
   - Set which App Launcher to use (allows swapping launchers)
   - OpenRPC calls: `config.getLauncherManifest`, `config.setLauncherManifest`
@@ -38,7 +40,7 @@ It is a single page application.
 - **Identity Status**: Display current identity state via `identity.status`
   - Show 4-word identity address (for addressing/lookup)
   - Display whether identity is initialized
-- **Seed Phrase Backup**: 
+- **Seed Phrase Backup**:
   - Access backup/restore flow for 12-word seed phrase
   - Display seed phrase securely (with warnings about keeping it private)
   - Copy seed phrase to clipboard with confirmation
@@ -47,14 +49,14 @@ It is a single page application.
 - **Device Keys**: List paired devices and their public keys; revoke device access
 
 ### Server & Pairing
-- **Server Address**: 
+- **Server Address**:
   - Input field for server address configuration
   - Save via `config.setServer` OpenRPC method
   - Validation with error feedback
-- **Pairing**: 
+- **Pairing**:
   - QR code scanner for pairing (mobile)
   - Manual 4-word identity address entry option
-  - Initiate pairing via `pairing.start` 
+  - Initiate pairing via `pairing.start`
   - Display pairing status (attempts, elapsed time)
   - Show "Server not found" errors with retry option
   - List currently paired servers
@@ -81,7 +83,7 @@ It is a single page application.
 - **Uninstall**: Remove apps with confirmation via `apps.uninstall`
 
 ### Components
-- **Component Cache**: 
+- **Component Cache**:
   - List cached components with sizes and versions
   - Clear individual or all cached components
   - View cache statistics (total size, number of items)
@@ -92,7 +94,7 @@ It is a single page application.
 - **Storage Management**: Configure local data and cache directories
 
 ### Theme & Appearance
-- **Theme Mode**: 
+- **Theme Mode**:
   - Radio buttons for Light/Dark/System
   - Save via `ui.setTheme`, load via `ui.getTheme`
   - Preview theme changes in real-time
@@ -102,7 +104,7 @@ It is a single page application.
   - Save via `nav.setBottomMenu`
 
 ### Advanced
-- **Logging**: 
+- **Logging**:
   - View log file locations per platform
   - Configure log level (INFO/DEBUG/WARN/ERROR)
   - View recent logs in-app (read-only)

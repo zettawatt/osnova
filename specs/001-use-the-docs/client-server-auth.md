@@ -257,9 +257,9 @@ pub async fn handle_client_request(
         return Err(Error::Unauthorized);
     }
     
-    // Route to appropriate component
+    // Route to appropriate service or app-supplied component
     let response = server.route_request(request).await?;
-    
+
     Ok(response)
 }
 ```

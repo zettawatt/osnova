@@ -1,11 +1,6 @@
-# osnova-autonomi backend component
+# osnova-autonomi (built‑in service)
 
-This component is used to interact with the autonomi network, specifically the 'autonomi' rust crate version 0.6.1 as released on crates.io.
-It exposes the public autonomi library APIs as OpenRPC functions to be utilized by frontend and other backend components within the osnova ecosystem.
-This component is part of the osnova shell application stack, like the osnova-core backend component.
-By default this component will operate on the autonomi 'mainnet'.
-By adding the 'testnet = true' option, the component may operate on a local testnet instead of the mainnet.
-This component should always be running.
+Architecture Update (2025-10-03): This functionality is integrated into the Osnova shell as an in‑process Rust module. The OpenRPC methods listed below describe the service surface when exposed over RPC (stand‑alone or server mode); internally, equivalent Rust APIs are used. Packaging/manifests for this service are no longer required.
 
 ## Tokens
 

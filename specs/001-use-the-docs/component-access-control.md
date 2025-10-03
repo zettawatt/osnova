@@ -1,18 +1,18 @@
-# Component Access Control
+# Module Access Control
 
-**Decision Date**: 2025-10-02
+**Decision Date**: 2025-10-02 (amended 2025-10-03)
 **Status**: Approved for MVP
-**Decision**: Allow all components to call all other components for MVP; add capability-based permissions post-MVP
+**Decision**: Core services run in‑process and may call each other freely for MVP. Capability‑based permissions are planned post‑MVP, and any external RPC surfaces (if introduced) will enforce them.
 
 ## Overview
 
-Component access control determines which components can call which other components' OpenRPC methods. For MVP, we use a permissive model to reduce complexity, with plans for a capability-based system post-MVP.
+For built‑in services, inter‑module calls are in‑process; the permissive model applies for MVP. The OpenRPC router examples below apply only when exposing external RPC surfaces (e.g., server mode or future third‑party extensions).
 
 ## MVP Access Control Model
 
 ### Permissive Model
 
-**Rule**: Any component can call any other component's OpenRPC methods
+**Rule**: Any core module/service can call any other module/service API in-process. For external RPC surfaces (if enabled), calls are permissive for MVP.
 
 **Rationale**:
 - Simplifies MVP implementation
