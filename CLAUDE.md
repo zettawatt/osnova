@@ -59,61 +59,50 @@ Agents work in parallel across separate git worktrees, communicating via `.agent
 
 ## Code Quality Standards
 
-### Testing Requirements
+### Universal Principles
 
-- **TDD is mandatory**: Tests written before implementation
-- **Coverage**: ≥85% for all modules
-- **Test types**: Unit, integration, contract, E2E
-- **Frameworks**: `cargo test` (Rust) • Vitest (TypeScript) • Playwright (E2E)
+**Test-Driven Development (TDD)**
+- Tests MUST be written before implementation
+- Tests must fail initially (red), then pass (green), then refactor
+- Minimum coverage: **≥85%** for all modules
+- Test types: Unit, integration, contract, E2E
 
-### Error Handling
+**Don't Repeat Yourself (DRY)**
+- No code duplication greater than 3 lines
+- Extract shared logic into reusable functions
+- Single source of truth for each concept
 
-**Rust**: Use `Result<T, E>` and `Option<T>`
-- No `unwrap()` in production code
-- Use `?` operator for error propagation
-- Provide context with `anyhow::Context`
-- Custom errors with `thiserror`
+**Documentation**
+- Every public function/struct MUST have documentation
+- Include: purpose, parameters, returns, errors, examples
+- Document non-obvious implementation details
+- Keep documentation up to date with code changes
 
-**TypeScript**: Use try-catch with proper error types
-- Handle all async operation failures
-- Provide user-friendly error messages
-- Log errors for debugging
+**Error Handling**
+- Handle all error cases gracefully
+- Provide meaningful error messages
+- No silent failures
+- Use appropriate error types for the language
 
-### Code Style
-
-**Rust**: Follow `rustfmt` and `clippy` standards
-- Run `cargo fmt` before committing
-- Fix all `cargo clippy` warnings
-- Use meaningful variable names
+**Code Style**
+- Follow language-specific formatters and linters
+- Use meaningful variable and function names
 - Keep functions small and focused
+- Consistent naming conventions throughout
 
-**TypeScript**: Follow Prettier and ESLint standards
-- Use TypeScript strict mode
-- Define explicit types (avoid `any`)
-- Use meaningful component/variable names
+### Language-Specific Details
 
-### Documentation
+**Rust patterns and conventions**: See `.claude/agents/backend-core.md`
+- Error handling with Result/Option
+- Code style (rustfmt, clippy)
+- Documentation format
+- Testing patterns
 
-**Required for ALL public items**:
-```rust
-/// Brief one-line description.
-///
-/// More detailed explanation if needed.
-///
-/// # Examples
-///
-/// ```
-/// use osnova_core::identity::RootIdentity;
-///
-/// let seed = "twelve word seed phrase...";
-/// let identity = RootIdentity::from_seed(seed)?;
-/// ```
-///
-/// # Errors
-///
-/// Returns error if seed phrase is invalid.
-pub fn from_seed(seed: &str) -> Result<Self> { }
-```
+**TypeScript/Svelte patterns**: See `.claude/agents/frontend.md`
+- Error handling with try-catch
+- Code style (ESLint, Prettier)
+- Component documentation
+- Testing patterns
 
 ## Documentation Structure
 

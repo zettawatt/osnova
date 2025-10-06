@@ -33,6 +33,345 @@ Svelte/TypeScript frontend specialist focused on implementing UI/UX for Osnova c
 - Handle loading and error states
 - Follow Svelte best practices
 
+**See [CLAUDE.md](../../CLAUDE.md) for universal code quality principles.**
+
+## TypeScript/Svelte-Specific Code Quality Standards
+
+### Error Handling
+
+**Always use try-catch for async operations**:
+```typescript
+async function loadApps(): Promise<App[]> {
+  try {
+    const response = await client.call('apps.list');
+    return response;
+  } catch (error) {
+    if (error.code === -32001) {
+      throw new Error('Apps not found');
+    }
+    console.error('Failed to load apps:', error);
+    throw new Error('Failed to load apps');
+  }
+}
+```
+
+**Rules**:
+- ✅ Wrap all async calls in try-catch
+- ✅ Provide user-friendly error messages
+- ✅ Log errors for debugging
+- ✅ Handle specific error cases
+- ✅ Show errors to user (toast/modal/inline)
+
+**Component error handling**:
+```svelte
+<script lang="ts">
+  let loading = true;
+  let error: string | null = null;
+  let apps: App[] = [];
+
+  onMount(async () => {
+    try {
+      apps = await loadApps();
+    } catch (e) {
+      error = e.message;
+      console.error('Failed to load apps:', e);
+    } finally {
+      loading = false;
+    }
+  });
+</script>
+
+{#if loading}
+  <Spinner />
+{:else if error}
+  <ErrorMessage message={error} onRetry={() => window.location.reload()} />
+{:else}
+  <AppGrid {apps} />
+{/if}
+```
+
+### Code Style
+
+**Follow ESLint and Prettier standards**:
+```bash
+# Lint code
+npm run lint
+
+# Fix auto-fixable issues
+npm run lint:fix
+
+# Format code
+npm run format
+```
+
+**TypeScript strict mode**:
+```typescript
+// Always use explicit types
+interface App {
+  id: string;
+  name: string;
+  iconUri: string;
+}
+
+// Avoid 'any'
+function processData(data: unknown): App {
+  if (!isValidApp(data)) {
+    throw new Error('Invalid app data');
+  }
+  return data as App;
+}
+
+// Use type guards
+function isValidApp(data: unknown): data is App {
+  return (
+    typeof data === 'object' &&
+    data !== null &&
+    'id' in data &&
+    'name' in data
+  );
+}
+```
+
+**Naming conventions**:
+- `camelCase` for functions and variables
+- `PascalCase` for components and interfaces
+- `SCREAMING_SNAKE_CASE` for constants
+- Descriptive names over abbreviations
+
+**Component guidelines**:
+- One component per file
+- Props at top of script block
+- Exports then internal state
+- Functions after state
+- Keep components under 200 lines
+- Extract sub-components if too large
+
+### Documentation Format
+
+**Component documentation**:
+```svelte
+<!--
+  AppLauncher - Displays installed applications in a grid layout.
+
+  Features:
+  - Responsive grid (desktop/mobile)
+  - Drag-and-drop reordering
+  - Icon loading with fallback
+  - Click to launch app
+
+  @component
+  @example
+  ```svelte
+  <AppLauncher
+    apps={appList}
+    onLaunch={(id) => console.log('Launched:', id)}
+  />
+  ```
+-->
+<script lang="ts">
+  /**
+   * List of apps to display
+   */
+  export let apps: App[] = [];
+
+  /**
+   * Called when user clicks an app icon
+   */
+  export let onLaunch: (appId: string) => void = () => {};
+</script>
+```
+
+**Function documentation**:
+```typescript
+/**
+ * Fetches the list of installed applications from the backend.
+ *
+ * @returns Promise resolving to array of App objects
+ * @throws Error if backend request fails or returns invalid data
+ *
+ * @example
+ * const apps = await fetchApps();
+ * console.log(`Found ${apps.length} apps`);
+ */
+async function fetchApps(): Promise<App[]> {
+  // Implementation
+}
+```
+
+### Testing Patterns
+
+**Component tests**:
+```typescript
+import { render, fireEvent } from '@testing-library/svelte';
+import { describe, it, expect, vi } from 'vitest';
+import AppLauncher from './AppLauncher.svelte';
+
+describe('AppLauncher', () => {
+  it('renders app icons', () => {
+    const apps = [
+      { id: '1', name: 'App 1', iconUri: 'ant://icon1' },
+      { id: '2', name: 'App 2', iconUri: 'ant://icon2' }
+    ];
+
+    const { getAllByRole } = render(AppLauncher, { apps });
+
+    const icons = getAllByRole('button');
+    expect(icons).toHaveLength(2);
+  });
+
+  it('calls onLaunch when icon clicked', async () => {
+    const handleLaunch = vi.fn();
+    const apps = [{ id: '1', name: 'Test', iconUri: 'ant://test' }];
+
+    const { getByRole } = render(AppLauncher, {
+      apps,
+      onLaunch: handleLaunch
+    });
+
+    const icon = getByRole('button', { name: 'Test' });
+    await fireEvent.click(icon);
+
+    expect(handleLaunch).toHaveBeenCalledWith('1');
+  });
+
+  it('shows loading state', () => {
+    const { getByText } = render(AppLoader);
+    expect(getByText('Loading...')).toBeInTheDocument();
+  });
+
+  it('shows error state', () => {
+    const { getByText } = render(ErrorDisplay, {
+      error: 'Failed to load'
+    });
+    expect(getByText('Failed to load')).toBeInTheDocument();
+  });
+});
+```
+
+**Integration tests**:
+```typescript
+import { test, expect } from '@playwright/test';
+
+test('user can launch app from launcher', async ({ page }) => {
+  await page.goto('http://localhost:1420');
+
+  // Wait for apps to load
+  await page.waitForSelector('[role="grid"]');
+
+  // Click first app icon
+  await page.click('button[aria-label="Test App"]');
+
+  // Verify app launched
+  await expect(page).toHaveURL(/.*\/app\/test/);
+  await expect(page.locator('h1')).toContainText('Test App');
+});
+```
+
+**Mock OpenRPC client**:
+```typescript
+import { vi } from 'vitest';
+
+const mockClient = {
+  call: vi.fn().mockImplementation((method, params) => {
+    if (method === 'apps.list') {
+      return Promise.resolve([
+        { id: '1', name: 'Test App', iconUri: 'ant://test' }
+      ]);
+    }
+    if (method === 'apps.launch') {
+      return Promise.resolve({ success: true });
+    }
+    return Promise.reject(new Error('Unknown method'));
+  })
+};
+```
+
+### Responsive Design Patterns
+
+**Media queries**:
+```svelte
+<script>
+  let isMobile = false;
+
+  onMount(() => {
+    const mediaQuery = window.matchMedia('(max-width: 768px)');
+    isMobile = mediaQuery.matches;
+
+    const handler = (e: MediaQueryListEvent) => {
+      isMobile = e.matches;
+    };
+
+    mediaQuery.addEventListener('change', handler);
+    return () => mediaQuery.removeEventListener('change', handler);
+  });
+</script>
+
+{#if isMobile}
+  <MobileLayout />
+{:else}
+  <DesktopLayout />
+{/if}
+
+<style>
+  /* CSS-based responsive design */
+  .grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(100px, 1fr));
+    gap: 1rem;
+  }
+
+  @media (max-width: 768px) {
+    .grid {
+      grid-template-columns: repeat(auto-fill, minmax(80px, 1fr));
+      gap: 0.5rem;
+    }
+  }
+</style>
+```
+
+### Accessibility Patterns
+
+**ARIA attributes**:
+```svelte
+<button
+  role="button"
+  aria-label="Launch {app.name}"
+  aria-pressed={isActive}
+  tabindex="0"
+  on:click={() => launchApp(app.id)}
+>
+  <img src={app.iconUri} alt={app.name} />
+  <span>{app.name}</span>
+</button>
+
+<div role="grid" aria-label="Installed applications">
+  {#each apps as app}
+    <div role="gridcell">
+      <AppIcon {app} />
+    </div>
+  {/each}
+</div>
+```
+
+**Keyboard navigation**:
+```svelte
+<script>
+  function handleKeyDown(event: KeyboardEvent) {
+    if (event.key === 'Enter' || event.key === ' ') {
+      event.preventDefault();
+      launchApp(app.id);
+    }
+  }
+</script>
+
+<button
+  on:click={() => launchApp(app.id)}
+  on:keydown={handleKeyDown}
+>
+  {app.name}
+</button>
+```
+
 ## Worktree
 - **Path**: `/home/system/osnova_claude-frontend/`
 - **Branch**: `agent/frontend-dev`

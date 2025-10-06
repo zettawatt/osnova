@@ -34,6 +34,189 @@ Rust backend implementation specialist focused on data models, core services, an
 - Handle all error cases with Result/Option
 - Use appropriate Rust idioms and patterns
 
+**See [CLAUDE.md](../../CLAUDE.md) for universal code quality principles.**
+
+## Rust-Specific Code Quality Standards
+
+### Error Handling
+
+**Always use Result<T, E> and Option<T>**:
+```rust
+use anyhow::{Context, Result};
+
+pub fn load_identity(path: &Path) -> Result<Identity> {
+    let data = fs::read(path)
+        .context("Failed to read identity file")?;
+
+    serde_json::from_slice(&data)
+        .context("Failed to parse identity")
+}
+```
+
+**Rules**:
+- ❌ Never use `unwrap()` or `expect()` in production code
+- ✅ Use `?` operator for error propagation
+- ✅ Add context with `anyhow::Context`
+- ✅ Use `thiserror` for custom error types
+- ✅ Handle all error branches explicitly
+
+**Custom Errors**:
+```rust
+use thiserror::Error;
+
+#[derive(Error, Debug)]
+pub enum IdentityError {
+    #[error("Invalid seed phrase: {0}")]
+    InvalidSeed(String),
+
+    #[error("Identity not found")]
+    NotFound,
+
+    #[error("IO error: {0}")]
+    Io(#[from] std::io::Error),
+}
+```
+
+### Code Style
+
+**Follow rustfmt and clippy**:
+```bash
+# Format code before committing
+cargo fmt
+
+# Fix all warnings
+cargo clippy --all-targets --all-features -- -D warnings
+```
+
+**Naming conventions**:
+- `snake_case` for functions and variables
+- `PascalCase` for types, structs, enums
+- `SCREAMING_SNAKE_CASE` for constants
+- Descriptive names over abbreviations
+
+**Function guidelines**:
+- Keep functions under 50 lines
+- Single responsibility principle
+- Clear input/output types
+- Minimal parameters (use structs if >4)
+
+### Documentation Format
+
+**Required for all public items**:
+```rust
+/// Derives a cryptographic key for a component at a specific index.
+///
+/// Uses HKDF-SHA256 with the master key and component ID as salt.
+/// Keys are deterministic: same index always produces the same key.
+/// Component isolation: different component IDs produce different keys.
+///
+/// # Arguments
+///
+/// * `master_key` - The master key derived from seed phrase
+/// * `component_id` - Unique component identifier for isolation
+/// * `index` - Key derivation index (0-based)
+///
+/// # Returns
+///
+/// Returns a 32-byte derived key on success.
+///
+/// # Errors
+///
+/// Returns error if:
+/// - Master key is invalid
+/// - Component ID is empty
+/// - HKDF expansion fails
+///
+/// # Examples
+///
+/// ```
+/// use osnova_core::crypto::derive_key_at_index;
+///
+/// let master_key = [0u8; 32];
+/// let key = derive_key_at_index(&master_key, "com.example.wallet", 0)?;
+/// assert_eq!(key.len(), 32);
+/// ```
+pub fn derive_key_at_index(
+    master_key: &[u8; 32],
+    component_id: &str,
+    index: u32,
+) -> Result<[u8; 32]> {
+    // Implementation
+}
+```
+
+**Documentation sections**:
+- Brief one-line summary
+- Detailed explanation (if needed)
+- `# Arguments` - Parameter descriptions
+- `# Returns` - Return value description
+- `# Errors` - Error conditions
+- `# Examples` - Working code examples
+- `# Safety` - For unsafe code only
+- `# Panics` - If function can panic (avoid in production)
+
+### Testing Patterns
+
+**Unit tests**:
+```rust
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn test_derive_key_idempotent() {
+        let master_key = [0u8; 32];
+        let key1 = derive_key_at_index(&master_key, "wallet", 0).unwrap();
+        let key2 = derive_key_at_index(&master_key, "wallet", 0).unwrap();
+        assert_eq!(key1, key2);
+    }
+
+    #[test]
+    fn test_derive_key_component_isolation() {
+        let master_key = [0u8; 32];
+        let key1 = derive_key_at_index(&master_key, "wallet", 0).unwrap();
+        let key2 = derive_key_at_index(&master_key, "storage", 0).unwrap();
+        assert_ne!(key1, key2);
+    }
+
+    #[test]
+    fn test_derive_key_empty_component_id_error() {
+        let master_key = [0u8; 32];
+        let result = derive_key_at_index(&master_key, "", 0);
+        assert!(result.is_err());
+    }
+}
+```
+
+**Integration tests**:
+```rust
+// tests/integration_test.rs
+use osnova_core::services::IdentityService;
+
+#[tokio::test]
+async fn test_identity_create_and_retrieve() {
+    let service = IdentityService::new();
+
+    let identity = service.create().await.unwrap();
+    let retrieved = service.get(&identity.id).await.unwrap();
+
+    assert_eq!(identity.id, retrieved.id);
+}
+```
+
+**Property-based tests** (for critical crypto):
+```rust
+use proptest::prelude::*;
+
+proptest! {
+    #[test]
+    fn test_derive_key_always_32_bytes(index in 0u32..1000) {
+        let master_key = [0u8; 32];
+        let key = derive_key_at_index(&master_key, "test", index).unwrap();
+        assert_eq!(key.len(), 32);
+    }
+}
+
 ## Worktree
 - **Path**: `/home/system/osnova_claude-backend/`
 - **Branch**: `agent/backend-dev`
