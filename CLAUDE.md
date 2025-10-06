@@ -25,6 +25,19 @@ This project follows a **specification-driven development** approach. Before gen
 4. **Implementation**: Generate code to pass tests
 5. **Validation**: Verify against specifications
 
+### Multi-Agent Development
+
+Osnova uses a multi-agent development system to automate implementation:
+
+- **Orchestrator Agent**: Coordinates all agents, manages tasks, and handles integration
+- **Backend Core Agent**: Implements Rust services and data models
+- **Rust Testing Agent**: Validates backend code with tests and quality checks
+- **Frontend Agent**: Implements Svelte UI components (Phase 2)
+- **E2E Testing Agent**: Validates user flows with Playwright MCP (Phase 2)
+- **Integration Agent**: Packages components and manages builds (Phase 3)
+
+Agents work in parallel across separate git worktrees, communicating via `.agents/` directories. See [AGENTS.md](./AGENTS.md) for detailed documentation.
+
 ### Specification Structure
 
 All specifications are organized in the `docs/` directory in a book-like format:
