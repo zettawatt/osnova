@@ -1,0 +1,23 @@
+[package]
+name = "osnova_lib"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+repository.workspace = true
+
+[dependencies]
+# Workspace dependencies
+serde.workspace = true
+serde_json.workspace = true
+tokio.workspace = true
+anyhow.workspace = true
+thiserror.workspace = true
+blake3.workspace = true
+hkdf.workspace = true
+sha2.workspace = true
+rusqlite.workspace = true
+flate2.workspace = true
+
+[dev-dependencies]
+proptest.workspace = true
+tempfile = "3.12"
