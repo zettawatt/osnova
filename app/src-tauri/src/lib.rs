@@ -103,24 +103,74 @@ impl AppState {
 // Identity Service Commands
 // ============================================================================
 
+/// Check if identity exists and initialize identity service
 #[tauri::command]
-fn identity_create(state: State<AppState>) -> Result<String, String> {
+fn identity_check(state: State<AppState>) -> Result<bool, String> {
+    // Initialize identity service if not already initialized
+    if state.identity_service.lock().unwrap().is_none() {
+        let identity_service =
+            IdentityService::new(&state.storage_path).map_err(|e| e.to_string())?;
+        *state.identity_service.lock().unwrap() = Some(identity_service);
+    }
+
+    // Check if identity exists
     let guard = state.identity_service.lock().unwrap();
     let service = guard.as_ref().ok_or("Identity service not initialized")?;
-    let (seed_phrase, _address) = service.create().map_err(|e| e.to_string())?;
+    match service.status() {
+        Ok(status) => Ok(status.initialized),
+        Err(_) => Ok(false),
+    }
+}
+
+#[tauri::command]
+fn identity_create(state: State<AppState>) -> Result<String, String> {
+    // Ensure identity service is initialized
+    if state.identity_service.lock().unwrap().is_none() {
+        let identity_service =
+            IdentityService::new(&state.storage_path).map_err(|e| e.to_string())?;
+        *state.identity_service.lock().unwrap() = Some(identity_service);
+    }
+
+    let guard = state.identity_service.lock().unwrap();
+    let service = guard.as_ref().ok_or("Identity service not initialized")?;
+    let (seed_phrase, address) = service.create().map_err(|e| e.to_string())?;
+
+    // After creating identity, initialize other services
+    drop(guard); // Release lock before calling init_for_user
+    state.init_for_user(&address).map_err(|e| format!("Failed to initialize services: {}", e))?;
+
     Ok(seed_phrase)
 }
 
 #[tauri::command]
 fn identity_import(state: State<AppState>, seed_phrase: String) -> Result<String, String> {
+    // Ensure identity service is initialized
+    if state.identity_service.lock().unwrap().is_none() {
+        let identity_service =
+            IdentityService::new(&state.storage_path).map_err(|e| e.to_string())?;
+        *state.identity_service.lock().unwrap() = Some(identity_service);
+    }
+
     let guard = state.identity_service.lock().unwrap();
     let service = guard.as_ref().ok_or("Identity service not initialized")?;
     let address = service.import_with_phrase(&seed_phrase).map_err(|e| e.to_string())?;
+
+    // After importing identity, initialize other services
+    drop(guard); // Release lock before calling init_for_user
+    state.init_for_user(&address).map_err(|e| format!("Failed to initialize services: {}", e))?;
+
     Ok(address)
 }
 
 #[tauri::command]
 fn identity_get(state: State<AppState>) -> Result<String, String> {
+    // Ensure identity service is initialized
+    if state.identity_service.lock().unwrap().is_none() {
+        let identity_service =
+            IdentityService::new(&state.storage_path).map_err(|e| e.to_string())?;
+        *state.identity_service.lock().unwrap() = Some(identity_service);
+    }
+
     let guard = state.identity_service.lock().unwrap();
     let service = guard.as_ref().ok_or("Identity service not initialized")?;
     let identity = service.get_identity().map_err(|e| e.to_string())?;
@@ -255,6 +305,7 @@ pub fn run() {
         .plugin(tauri_plugin_opener::init())
         .manage(app_state)
         .invoke_handler(tauri::generate_handler![
+            identity_check,
             identity_create,
             identity_import,
             identity_get,
