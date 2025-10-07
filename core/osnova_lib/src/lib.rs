@@ -28,6 +28,7 @@
 /// Data models for Osnova entities
 pub mod models {
     pub mod identity;
+    pub mod device_key;
 }
 
 /// Cryptographic operations (key derivation, encryption)
