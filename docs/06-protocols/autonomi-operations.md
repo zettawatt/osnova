@@ -102,9 +102,29 @@ println!("Downloaded {} bytes", data.len());
 
 **Features:**
 - Automatic chunk reassembly for large files
-- Content verification (hash checking)
-- Progress tracking for large downloads
+- Content verification (hash checking via self-encryption)
 - Error handling for missing or corrupted data
+- URI validation (format, hex encoding, XorName length)
+
+**URI Requirements:**
+- Must start with `ant://` prefix
+- Must contain valid hex-encoded XorName (64 hex characters)
+- XorName must decode to exactly 32 bytes
+
+**Example with Error Handling:**
+
+```rust
+match download_data(&client, uri).await {
+    Ok(data) => println!("Downloaded {} bytes", data.len()),
+    Err(OsnovaError::Network(msg)) if msg.contains("Invalid URI format") => {
+        eprintln!("URI format error: {}", msg);
+    }
+    Err(OsnovaError::Network(msg)) if msg.contains("Failed to download") => {
+        eprintln!("Download failed (data not found or corrupted): {}", msg);
+    }
+    Err(e) => eprintln!("Unexpected error: {}", e),
+}
+```
 
 ## Error Handling
 

@@ -25,8 +25,8 @@
 //! }
 //! ```
 
-use crate::error::{OsnovaError, Result};
 use super::AutonomiClient;
+use crate::error::{OsnovaError, Result};
 use bytes::Bytes;
 
 /// Upload data to the Autonomi Network
@@ -54,10 +54,7 @@ use bytes::Bytes;
 /// let address = upload_data(&client, data).await?;
 /// println!("Uploaded to: {}", address);
 /// ```
-pub async fn upload_data(
-    client: &AutonomiClient,
-    data: &[u8],
-) -> Result<String> {
+pub async fn upload_data(client: &AutonomiClient, data: &[u8]) -> Result<String> {
     use autonomi::client::payment::PaymentOption;
     use autonomi::client::payment::Receipt;
 
@@ -112,10 +109,7 @@ pub async fn upload_data(
 /// let cost = estimate_upload_cost(&client, data).await?;
 /// println!("Upload will cost: {} AttoTokens", cost);
 /// ```
-pub async fn estimate_upload_cost(
-    client: &AutonomiClient,
-    data: &[u8],
-) -> Result<u64> {
+pub async fn estimate_upload_cost(client: &AutonomiClient, data: &[u8]) -> Result<u64> {
     // Get the underlying Autonomi client
     let client_arc = client.client();
     let client_guard = client_arc.read().await;

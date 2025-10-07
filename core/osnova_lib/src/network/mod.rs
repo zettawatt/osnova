@@ -23,7 +23,9 @@
 //! ```
 
 pub mod autonomi_client;
+pub mod download;
 pub mod upload;
 
 pub use autonomi_client::AutonomiClient;
-pub use upload::{upload_data, estimate_upload_cost};
+pub use download::download_data;
+pub use upload::{estimate_upload_cost, upload_data};
