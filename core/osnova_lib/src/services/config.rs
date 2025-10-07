@@ -279,7 +279,7 @@ impl ConfigService {
     /// # fn example() -> anyhow::Result<()> {
     /// let service = ConfigService::new("/tmp/storage")?;
     /// if let Some(cache) = service.get_app_cache("com.osnova.wallet", "user-123")? {
-    ///     println!("Cache size: {} bytes", cache.data().len());
+    ///     println!("Cache size: {} bytes", cache.entries().len());
     /// }
     /// # Ok(())
     /// # }

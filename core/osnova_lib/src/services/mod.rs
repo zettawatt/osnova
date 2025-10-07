@@ -19,7 +19,23 @@ pub mod config;
 /// Application management service
 pub mod apps;
 
+/// Launcher layout service
+pub mod launcher;
+
+/// UI management service
+pub mod ui;
+
+/// Navigation management service
+pub mod navigation;
+
+/// Status management service
+pub mod status;
+
 pub use identity::IdentityService;
 pub use keys::KeyService;
 pub use config::ConfigService;
 pub use apps::AppsService;
+pub use launcher::LauncherService;
+pub use ui::{UIService, Theme};
+pub use navigation::{NavigationService, BottomMenuTab};
+pub use status::{StatusService, ServerStatus, ServerStatusResponse};

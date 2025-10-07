@@ -2,7 +2,6 @@ use anyhow::{Context, Result};
 use serde::{Deserialize, Serialize};
 use std::path::PathBuf;
 
-use crate::models::application::OsnovaApplication;
 use crate::storage::SqlStorage;
 
 /// Application list response
