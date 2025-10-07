@@ -12,6 +12,14 @@
   let apps = $state<AppListItem[]>([]);
   let layout = $state<string[]>([]);
   let loading = $state(false);
+  let draggedAppId = $state<string | null>(null);
+  let dragOverAppId = $state<string | null>(null);
+
+  // Mobile touch state
+  let touchStartTime = $state(0);
+  let touchStartPos = $state<{ x: number; y: number } | null>(null);
+  let longPressTimer: number | null = null;
+  let isDraggingMobile = $state(false);
 
   // Subscribe to stores
   $effect(() => {
@@ -55,6 +63,149 @@
     event.preventDefault();
     onUninstallRequest?.(app);
   }
+
+  // Drag and drop handlers for desktop
+  function handleDragStart(event: DragEvent, appId: string) {
+    draggedAppId = appId;
+    if (event.dataTransfer) {
+      event.dataTransfer.effectAllowed = 'move';
+      event.dataTransfer.setData('text/plain', appId);
+    }
+  }
+
+  function handleDragEnd() {
+    draggedAppId = null;
+    dragOverAppId = null;
+  }
+
+  function handleDragOver(event: DragEvent, appId: string) {
+    event.preventDefault();
+    if (draggedAppId && draggedAppId !== appId) {
+      dragOverAppId = appId;
+      if (event.dataTransfer) {
+        event.dataTransfer.dropEffect = 'move';
+      }
+    }
+  }
+
+  function handleDragLeave() {
+    dragOverAppId = null;
+  }
+
+  async function handleDrop(event: DragEvent, targetAppId: string) {
+    event.preventDefault();
+    dragOverAppId = null;
+
+    if (!draggedAppId || draggedAppId === targetAppId) {
+      draggedAppId = null;
+      return;
+    }
+
+    // Create new layout by reordering
+    const currentApps = sortedApps();
+    const draggedIndex = currentApps.findIndex((app) => app.id === draggedAppId);
+    const targetIndex = currentApps.findIndex((app) => app.id === targetAppId);
+
+    if (draggedIndex === -1 || targetIndex === -1) {
+      draggedAppId = null;
+      return;
+    }
+
+    // Reorder the apps
+    const reorderedApps = [...currentApps];
+    const [draggedApp] = reorderedApps.splice(draggedIndex, 1);
+    reorderedApps.splice(targetIndex, 0, draggedApp);
+
+    // Update layout
+    const newLayout = reorderedApps.map((app) => app.id);
+    await launcherStore.saveLayout(newLayout);
+
+    draggedAppId = null;
+  }
+
+  // Mobile touch handlers
+  function handleTouchStart(event: TouchEvent, appId: string) {
+    const touch = event.touches[0];
+    touchStartTime = Date.now();
+    touchStartPos = { x: touch.clientX, y: touch.clientY };
+
+    // Long press detection (500ms)
+    longPressTimer = window.setTimeout(() => {
+      isDraggingMobile = true;
+      draggedAppId = appId;
+      // Haptic feedback if available
+      if ('vibrate' in navigator) {
+        navigator.vibrate(50);
+      }
+    }, 500);
+  }
+
+  function handleTouchMove(event: TouchEvent) {
+    if (!isDraggingMobile || !draggedAppId) return;
+
+    event.preventDefault();
+    const touch = event.touches[0];
+
+    // Find element under touch point
+    const element = document.elementFromPoint(touch.clientX, touch.clientY);
+    const wrapper = element?.closest('.app-wrapper');
+
+    if (wrapper) {
+      const targetAppId = wrapper.getAttribute('data-app-id');
+      if (targetAppId && targetAppId !== draggedAppId) {
+        dragOverAppId = targetAppId;
+      }
+    }
+  }
+
+  async function handleTouchEnd(event: TouchEvent) {
+    // Clear long press timer
+    if (longPressTimer) {
+      clearTimeout(longPressTimer);
+      longPressTimer = null;
+    }
+
+    // If not dragging, this was a tap - ignore
+    if (!isDraggingMobile) {
+      touchStartPos = null;
+      return;
+    }
+
+    event.preventDefault();
+
+    // Perform drop if we have a valid target
+    if (draggedAppId && dragOverAppId && draggedAppId !== dragOverAppId) {
+      const currentApps = sortedApps();
+      const draggedIndex = currentApps.findIndex((app) => app.id === draggedAppId);
+      const targetIndex = currentApps.findIndex((app) => app.id === dragOverAppId);
+
+      if (draggedIndex !== -1 && targetIndex !== -1) {
+        const reorderedApps = [...currentApps];
+        const [draggedApp] = reorderedApps.splice(draggedIndex, 1);
+        reorderedApps.splice(targetIndex, 0, draggedApp);
+
+        const newLayout = reorderedApps.map((app) => app.id);
+        await launcherStore.saveLayout(newLayout);
+      }
+    }
+
+    // Reset state
+    isDraggingMobile = false;
+    draggedAppId = null;
+    dragOverAppId = null;
+    touchStartPos = null;
+  }
+
+  function handleTouchCancel() {
+    if (longPressTimer) {
+      clearTimeout(longPressTimer);
+      longPressTimer = null;
+    }
+    isDraggingMobile = false;
+    draggedAppId = null;
+    dragOverAppId = null;
+    touchStartPos = null;
+  }
 </script>
 
 <div class="app-grid-container">
@@ -72,12 +223,31 @@
   {:else}
     <div class="app-grid">
       {#each sortedApps() as app (app.id)}
-        <AppIcon
-          {app}
-          size="md"
-          onclick={() => handleLaunchApp(app.id)}
-          oncontextmenu={(e) => handleContextMenu(e, app)}
-        />
+        <div
+          class="app-wrapper"
+          class:dragging={draggedAppId === app.id}
+          class:drag-over={dragOverAppId === app.id}
+          data-app-id={app.id}
+          draggable="true"
+          ondragstart={(e) => handleDragStart(e, app.id)}
+          ondragend={handleDragEnd}
+          ondragover={(e) => handleDragOver(e, app.id)}
+          ondragleave={handleDragLeave}
+          ondrop={(e) => handleDrop(e, app.id)}
+          ontouchstart={(e) => handleTouchStart(e, app.id)}
+          ontouchmove={handleTouchMove}
+          ontouchend={handleTouchEnd}
+          ontouchcancel={handleTouchCancel}
+          role="button"
+          tabindex="0"
+        >
+          <AppIcon
+            {app}
+            size="md"
+            onclick={() => handleLaunchApp(app.id)}
+            oncontextmenu={(e) => handleContextMenu(e, app)}
+          />
+        </div>
       {/each}
     </div>
   {/if}
@@ -95,6 +265,44 @@
     grid-template-columns: repeat(auto-fill, minmax(5rem, 1fr));
     gap: var(--spacing-xl);
     justify-items: center;
+  }
+
+  .app-wrapper {
+    cursor: grab;
+    transition: all var(--transition-fast);
+    border-radius: var(--radius-lg);
+    padding: var(--spacing-xs);
+  }
+
+  .app-wrapper:active {
+    cursor: grabbing;
+  }
+
+  .app-wrapper.dragging {
+    opacity: 0.5;
+    transform: scale(0.95);
+    cursor: grabbing;
+  }
+
+  .app-wrapper.drag-over {
+    background-color: var(--color-accent-light);
+    transform: scale(1.05);
+  }
+
+  /* Mobile touch feedback */
+  @media (hover: none) and (pointer: coarse) {
+    .app-wrapper {
+      touch-action: none;
+      user-select: none;
+      -webkit-user-select: none;
+    }
+
+    .app-wrapper.dragging {
+      opacity: 0.7;
+      transform: scale(1.1);
+      z-index: 1000;
+      box-shadow: var(--shadow-lg);
+    }
   }
 
   /* Loading state */
@@ -162,6 +370,11 @@
 
     .app-grid-container {
       padding: var(--spacing-md);
+    }
+
+    /* Disable desktop drag-and-drop on touch devices */
+    .app-wrapper {
+      cursor: default;
     }
   }
 
