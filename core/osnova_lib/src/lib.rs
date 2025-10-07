@@ -50,6 +50,9 @@ pub mod services;
 /// Network operations (Autonomi integration)
 pub mod network;
 
+/// Component cache (local storage)
+pub mod cache;
+
 /// Error types for Osnova operations
 pub mod error {
     use thiserror::Error;
