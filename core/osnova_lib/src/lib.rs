@@ -30,6 +30,7 @@ pub mod models {
     pub mod identity;
     pub mod device_key;
     pub mod application;
+    pub mod config_cache;
 }
 
 /// Cryptographic operations (key derivation, encryption)
