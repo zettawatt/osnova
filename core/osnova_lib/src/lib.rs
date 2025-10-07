@@ -27,7 +27,7 @@
 
 /// Data models for Osnova entities
 pub mod models {
-    // Models will be implemented in Phase 1 tasks
+    pub mod identity;
 }
 
 /// Cryptographic operations (key derivation, encryption)
