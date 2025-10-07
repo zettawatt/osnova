@@ -18,6 +18,15 @@ The osnova‑saorsa service provides access to saorsa‑core's decentralized ide
 - **Real-Time Media**: Audio/video calling with WebRTC-over-QUIC
 - **Group Management**: Create and manage groups with membership control
 
+### Cryptographic Libraries
+
+osnova-saorsa integrates multiple saorsa cryptographic libraries:
+
+- **saorsa-core**: Core P2P networking with 4-word addresses and ML routing
+- **saorsa-pqc**: Post-quantum cryptography (ML-KEM, ML-DSA, SLH-DSA)
+- **saorsa-seal**: Threshold encryption with Shamir's Secret Sharing
+- **saorsa-fec**: Forward error correction with Reed-Solomon coding
+
 ## Core Concepts
 
 ### Identity

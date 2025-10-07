@@ -216,6 +216,214 @@ proptest! {
         assert_eq!(key.len(), 32);
     }
 }
+```
+
+## Saorsa Library Usage Patterns
+
+### saorsa-pqc - Post-Quantum Cryptography
+
+**Purpose**: NIST FIPS 203/204/205 compliant post-quantum cryptography
+
+**When to use**:
+- Future-proof encryption for sensitive data
+- Key encapsulation (ML-KEM)
+- Digital signatures (ML-DSA)
+- Quantum-resistant authentication
+
+**Example - Key Encapsulation**:
+```rust
+use saorsa_pqc::kem::MlKem768;
+use saorsa_pqc::traits::{Kem, SerDes};
+
+// Generate keypair
+let (public_key, secret_key) = MlKem768::generate_keypair()?;
+
+// Encapsulate (sender side)
+let (ciphertext, shared_secret) = MlKem768::encapsulate(&public_key)?;
+
+// Decapsulate (receiver side)
+let recovered_secret = MlKem768::decapsulate(&secret_key, &ciphertext)?;
+
+assert_eq!(shared_secret, recovered_secret);
+```
+
+**Example - Digital Signatures**:
+```rust
+use saorsa_pqc::dsa::MlDsa65;
+use saorsa_pqc::traits::{Dsa, SerDes};
+
+// Generate signing keypair
+let (public_key, secret_key) = MlDsa65::generate_keypair()?;
+
+// Sign message
+let message = b"Important data";
+let signature = MlDsa65::sign(&secret_key, message)?;
+
+// Verify signature
+let is_valid = MlDsa65::verify(&public_key, message, &signature)?;
+assert!(is_valid);
+```
+
+**Integration in Osnova**:
+- Long-term data encryption
+- Component signature verification
+- Future-proof identity cryptography
+
+---
+
+### saorsa-fec - Forward Error Correction
+
+**Purpose**: High-performance Reed-Solomon error correction with encryption
+
+**When to use**:
+- Distributed component storage
+- Error-resilient data transmission
+- Convergent encryption for deduplication
+- Content-addressed storage
+
+**Example - Convergent Encryption**:
+```rust
+use saorsa_fec::{EncryptionMode, StoragePipeline, LocalStorage};
+
+// Setup storage with convergent encryption
+let storage = LocalStorage::new("./storage")?;
+let mut pipeline = StoragePipeline::new(
+    storage,
+    EncryptionMode::ConvergentWithSecret(b"user-secret".to_vec())
+)?;
+
+// Store data with automatic chunking and FEC
+let data = b"Component data to store";
+let content_hash = pipeline.store(data).await?;
+
+// Retrieve data (automatic error correction)
+let retrieved = pipeline.retrieve(&content_hash).await?;
+assert_eq!(data, &retrieved[..]);
+```
+
+**SIMD Performance**:
+- 1,000-7,500 MB/s with AVX2/NEON
+- Automatic CPU feature detection
+- Scales with data size
+
+**Integration in Osnova**:
+- Component distribution via Autonomi
+- Cached component storage
+- Deduplication across users
+
+---
+
+### saorsa-seal - Threshold Cryptography
+
+**Purpose**: Distributed data storage with threshold encryption
+
+**When to use**:
+- Multi-device data backup
+- Distributed key recovery
+- Fault-tolerant secret storage
+- Social recovery mechanisms
+
+**Example - Seal and Open Data**:
+```rust
+use saorsa_seal::{seal_data, open_data, DhtStorage};
+
+// Seal data with 5 shares, 3 required for recovery
+let data = b"User's encrypted seed phrase backup";
+let threshold = 3;
+let total_shares = 5;
+let use_pq_crypto = true; // Post-quantum encryption
+
+let shares = seal_data(
+    data,
+    total_shares,
+    threshold,
+    use_pq_crypto
+).await?;
+
+// Distribute shares across DHT or devices
+for (i, share) in shares.iter().enumerate() {
+    // Store share on device or DHT
+    dht.store(&format!("backup-share-{}", i), share).await?;
+}
+
+// Later: Recover data with any 3+ shares
+let recovered_shares = vec![shares[0], shares[2], shares[4]];
+let recovered_data = open_data(&recovered_shares).await?;
+
+assert_eq!(data, &recovered_data[..]);
+```
+
+**Key Features**:
+- Shamir's Secret Sharing
+- ML-KEM-768 post-quantum encryption
+- Reed-Solomon error correction
+- Async DHT abstraction
+
+**Integration in Osnova**:
+- Seed phrase backup (split across devices)
+- Multi-device key recovery
+- Future: Social recovery (split among trusted contacts)
+
+---
+
+### cocoon - Simple Encryption
+
+**Purpose**: Local file and data encryption with password/key
+
+**When to use**:
+- Encrypting local configuration files
+- Secure storage of cached data
+- Platform keystore unavailable
+- Simple encrypt/decrypt needs
+
+**Example - File Encryption**:
+```rust
+use cocoon::{Cocoon, Error};
+
+// Encrypt file with password
+let cocoon = Cocoon::new(b"user-password");
+let data = std::fs::read("config.json")?;
+let encrypted = cocoon.wrap(&data)?;
+std::fs::write("config.enc", &encrypted)?;
+
+// Decrypt file
+let encrypted = std::fs::read("config.enc")?;
+let decrypted = cocoon.unwrap(&encrypted)?;
+let config: Config = serde_json::from_slice(&decrypted)?;
+```
+
+**Example - MiniCocoon for Lightweight Use**:
+```rust
+use cocoon::MiniCocoon;
+
+let mut mini = MiniCocoon::from_key(b"32-byte-key-here-000000000000", &[0; 32]);
+let wrapped = mini.wrap(b"quick data")?;
+let unwrapped = mini.unwrap(&wrapped)?;
+```
+
+**Integration in Osnova**:
+- Local config file encryption
+- Temporary secure storage
+- Complement to platform keystore
+
+---
+
+### Integration Guidelines
+
+**Choose the right library**:
+- **saorsa-pqc**: Quantum-resistant crypto operations
+- **saorsa-fec**: Distributed storage with error correction
+- **saorsa-seal**: Threshold encryption and recovery
+- **cocoon**: Simple local encryption
+
+**Best practices**:
+- Use saorsa-pqc for long-term security
+- Use saorsa-fec for component distribution
+- Use saorsa-seal for multi-device/social recovery
+- Use cocoon for local temporary encryption
+- Always handle errors with proper Result types
+- Zeroize sensitive data after use
+- Test crypto code with property-based tests
 
 ## Worktree
 - **Path**: `/home/system/osnova_claude-backend/`
@@ -245,8 +453,11 @@ proptest! {
 
 ### Dependencies
 - `autonomi` v0.6.1
-- `saorsa-core` (main branch)
-- `cocoon` v0.4.3
+- `saorsa-core` (main branch) - P2P networking with 4-word addresses
+- `saorsa-pqc` - Post-quantum cryptography (ML-KEM, ML-DSA, SLH-DSA)
+- `saorsa-fec` - Forward error correction with Reed-Solomon
+- `saorsa-seal` - Threshold cryptography with Shamir's Secret Sharing
+- `cocoon` v0.4.3 - Simple encryption for local storage
 - Standard Rust crates: serde, tokio, anyhow, thiserror, blake3, hkdf, sha2
 
 ## TDD Workflow (MANDATORY)

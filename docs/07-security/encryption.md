@@ -4,9 +4,32 @@ Osnova implements comprehensive encryption-at-rest to protect user data on both 
 
 ## Encryption Architecture
 
-All sensitive user data is encrypted at rest using saorsa-seal, which provides:
-- **Strong encryption**: ChaCha20-Poly1305 AEAD
-- **Key derivation**: From master key via HKDF
+Osnova uses multiple encryption libraries for different purposes:
+
+### Primary Encryption Libraries
+
+**cocoon** - Local file encryption:
+- **Purpose**: Encrypt local configuration and cache files
+- **Algorithm**: ChaCha20-Poly1305 or AES-256-GCM
+- **Key derivation**: PBKDF2-SHA256
+- **Use case**: Stand-alone mode local storage
+
+**saorsa-seal** - Threshold encryption:
+- **Purpose**: Distributed backup and multi-device recovery
+- **Algorithm**: ML-KEM-768 (post-quantum) + Shamir's Secret Sharing
+- **Features**: Split data into N shares, require M to recover
+- **Use case**: Seed phrase backup, social recovery
+
+**saorsa-pqc** - Post-quantum cryptography:
+- **Purpose**: Future-proof encryption for sensitive operations
+- **Algorithms**: ML-KEM (key encapsulation), ML-DSA (signatures)
+- **Use case**: Long-term data protection, component signatures
+
+### Encryption Properties
+
+All encryption provides:
+- **Strong encryption**: 256-bit security minimum
+- **Key derivation**: From master key via HKDF-SHA256
 - **Per-user encryption**: Unique keys per user
 - **Per-component isolation**: Separate keys per component
 
@@ -29,24 +52,55 @@ All sensitive user data is encrypted at rest using saorsa-seal, which provides:
 
 ## Encryption Implementation
 
-### saorsa-seal Integration
+### cocoon - Local File Encryption
 
-Osnova uses saorsa-seal for encryption operations:
+Osnova uses cocoon for local file and cache encryption:
 
 ```rust
-// Encrypt data
-let encrypted = saorsa_seal::encrypt(
-    &data,
-    &encryption_key,
-    &nonce
-)?;
+use cocoon::Cocoon;
 
-// Decrypt data
-let decrypted = saorsa_seal::decrypt(
-    &encrypted,
-    &encryption_key,
-    &nonce
-)?;
+// Derive encryption key from master key
+let encryption_key = derive_component_key(&master_key, component_id, "encryption")?;
+
+// Create cocoon instance
+let cocoon = Cocoon::new(&encryption_key);
+
+// Encrypt configuration file
+let config_data = serde_json::to_vec(&config)?;
+let encrypted = cocoon.wrap(&config_data)?;
+std::fs::write("config.enc", &encrypted)?;
+
+// Decrypt configuration file
+let encrypted = std::fs::read("config.enc")?;
+let decrypted = cocoon.unwrap(&encrypted)?;
+let config: Config = serde_json::from_slice(&decrypted)?;
+```
+
+### saorsa-seal - Threshold Backup
+
+Osnova uses saorsa-seal for seed phrase backup and recovery:
+
+```rust
+use saorsa_seal::{seal_data, open_data};
+
+// Backup seed phrase across devices (3-of-5 threshold)
+let seed_phrase = b"twelve word seed phrase here...";
+let shares = seal_data(
+    seed_phrase,
+    5,  // total shares
+    3,  // threshold to recover
+    true  // use post-quantum crypto
+).await?;
+
+// Distribute shares to user's devices
+for (i, share) in shares.iter().enumerate() {
+    store_on_device(i, share).await?;
+}
+
+// Later: Recover seed phrase with any 3 shares
+let available_shares = vec![shares[0], shares[2], shares[4]];
+let recovered = open_data(&available_shares).await?;
+assert_eq!(seed_phrase, &recovered[..]);
 ```
 
 ### Key Derivation
@@ -286,9 +340,22 @@ Server **cannot** decrypt user data because:
 ## Future Enhancements
 
 Post-MVP improvements:
+
+### Phase 2
+- **saorsa-fec integration**: Component distribution with error correction
+  - Convergent encryption for deduplication
+  - Reed-Solomon FEC for reliability
+  - SIMD-accelerated performance (1,000-7,500 MB/s)
+
+- **saorsa-pqc migration**: Quantum-resistant cryptography
+  - ML-KEM for key encapsulation
+  - ML-DSA for digital signatures
+  - Gradual migration path from classical crypto
+
+### Phase 3+
 - Key rotation automation
 - Hardware security module support
-- Additional encryption algorithms
 - Encrypted search
 - Homomorphic encryption (research)
-- Quantum-resistant algorithms
+- Advanced threshold schemes (M-of-N recovery)
+- Social recovery with saorsa-seal

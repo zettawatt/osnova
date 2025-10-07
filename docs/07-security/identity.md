@@ -130,11 +130,16 @@ Both artifacts required for complete restore:
 ## Encryption and Key Management
 
 ### Data Encryption
-Osnova uses saorsa-seal for encryption-at-rest:
+Osnova uses multiple encryption libraries:
+- **cocoon**: Local file encryption (config, cache)
+- **saorsa-seal**: Threshold encryption for seed phrase backup
+- **saorsa-pqc**: Post-quantum crypto (Phase 2+)
+
+Key properties:
 - Keys derived from master key per component
 - Each user has unique encryption keys
 - Server cannot decrypt user data (client-server mode)
-- Keys rotatable via re-encryption
+- Keys rotatable via re-encryption (post-MVP)
 
 ### Key Lifecycle
 1. **Creation**: Derive from master key
@@ -244,12 +249,42 @@ Osnova supports multiple devices per identity:
 - Clear user-facing error
 - Log technical details (without secrets)
 
+## Seed Phrase Backup (Future Enhancement)
+
+### Threshold Backup with saorsa-seal
+
+Post-MVP feature for distributed seed phrase backup:
+
+**Purpose**: Protect seed phrase across multiple devices using threshold encryption
+
+**How it works**:
+1. User's seed phrase split into N shares (e.g., 5)
+2. Only M shares needed to recover (e.g., 3)
+3. Shares distributed across user's devices
+4. Post-quantum encryption (ML-KEM-768)
+5. Automatic recovery if device lost
+
+**Example scenario**:
+- User has 5 devices (phone, laptop, tablet, desktop, smart TV)
+- Seed phrase split into 5 shares, need any 3 to recover
+- Loses phone → still can recover with remaining 4 devices
+- Loses phone + tablet → still can recover with 3 devices
+
+**Benefits**:
+- No single point of failure
+- No manual backup writing required
+- Quantum-resistant encryption
+- Automatic across trusted devices
+
+**Implementation**: Uses saorsa-seal library with Shamir's Secret Sharing
+
 ## Future Enhancements
 
 Post-MVP improvements:
+- **Threshold seed backup**: saorsa-seal-based distributed backup (described above)
 - Hardware wallet integration
 - Multi-signature accounts
 - Key rotation automation
-- Social recovery mechanisms
+- Social recovery: Share backup with trusted contacts
 - Biometric authentication
 - Advanced device management

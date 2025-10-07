@@ -2,6 +2,20 @@
 
 This is an in‑process Rust module that provides core shell services (apps, config, identity, storage, UI, server status). It is no longer a separate backend component process.
 
+## Encryption Libraries
+
+osnova-core uses the following encryption libraries:
+
+- **cocoon v0.4.3**: Local file encryption (ChaCha20-Poly1305 or AES-256-GCM)
+  - Used for: Configuration files, app cache, local storage
+  - Key derivation: PBKDF2-SHA256 from component-specific keys
+
+- **Platform keystore integration**: Secure storage for master key
+  - Windows: Credential Manager (DPAPI)
+  - macOS: Keychain Services
+  - Linux: Secret Service API (GNOME Keyring/KWallet)
+  - Android/iOS: Platform keystores
+
 ### Data Storage
 
 Use SQLite for structured/queryable data (app configs, registry); encrypted files for blobs (keys, cache)
