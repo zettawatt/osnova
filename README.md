@@ -29,6 +29,17 @@ osnova/
 - Creating storage layer (SQLite, encrypted files)
 - Implementing core services (identity, keys, config)
 
+## Setup
+
+**Important**: Before committing, ensure `.gitignore` is configured to exclude build artifacts:
+
+```bash
+# .gitignore should include:
+/target/
+**/*.rs.bk
+*.pdb
+```
+
 ## Building
 
 ```bash
