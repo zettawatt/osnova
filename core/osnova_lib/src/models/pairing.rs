@@ -360,9 +360,8 @@ mod tests {
         let server_key = sample_server_key();
         let device_key = sample_device_key();
 
-        let session =
-            PairingSession::with_expiry("session-123", &server_key, &device_key, 5000)
-                .expect("Failed to create session");
+        let session = PairingSession::with_expiry("session-123", &server_key, &device_key, 5000)
+            .expect("Failed to create session");
 
         assert_eq!(session.expires_at(), Some(5000));
     }
@@ -448,9 +447,8 @@ mod tests {
         let device_key = sample_device_key();
 
         // Expired session (timestamp in the past)
-        let session =
-            PairingSession::with_expiry("session-123", &server_key, &device_key, 1000)
-                .expect("Failed to create session");
+        let session = PairingSession::with_expiry("session-123", &server_key, &device_key, 1000)
+            .expect("Failed to create session");
         assert!(session.is_expired());
 
         // Future expiry

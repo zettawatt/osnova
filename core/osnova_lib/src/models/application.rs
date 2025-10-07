@@ -374,7 +374,10 @@ impl OsnovaApplication {
 
     /// Get components by kind
     pub fn components_by_kind(&self, kind: ComponentKind) -> Vec<&ComponentRef> {
-        self.components.iter().filter(|c| c.kind() == kind).collect()
+        self.components
+            .iter()
+            .filter(|c| c.kind() == kind)
+            .collect()
     }
 
     /// Find a component by ID
@@ -392,14 +395,8 @@ mod tests {
         let frontend = ComponentKind::Frontend;
         let backend = ComponentKind::Backend;
 
-        assert_eq!(
-            serde_json::to_string(&frontend).unwrap(),
-            "\"frontend\""
-        );
-        assert_eq!(
-            serde_json::to_string(&backend).unwrap(),
-            "\"backend\""
-        );
+        assert_eq!(serde_json::to_string(&frontend).unwrap(), "\"frontend\"");
+        assert_eq!(serde_json::to_string(&backend).unwrap(), "\"backend\"");
     }
 
     #[test]
@@ -415,8 +412,9 @@ mod tests {
 
     #[test]
     fn test_component_ref_new() {
-        let component = ComponentRef::new("comp-id", "My Component", ComponentKind::Frontend, "1.0.0")
-            .expect("Failed to create component");
+        let component =
+            ComponentRef::new("comp-id", "My Component", ComponentKind::Frontend, "1.0.0")
+                .expect("Failed to create component");
 
         assert_eq!(component.id(), "comp-id");
         assert_eq!(component.name(), "My Component");
@@ -478,8 +476,8 @@ mod tests {
 
     #[test]
     fn test_osnova_application_new() {
-        let component = ComponentRef::new("comp-id", "Component", ComponentKind::Frontend, "1.0.0")
-            .unwrap();
+        let component =
+            ComponentRef::new("comp-id", "Component", ComponentKind::Frontend, "1.0.0").unwrap();
 
         let app = OsnovaApplication::new(
             "app-id",
@@ -567,8 +565,8 @@ mod tests {
 
         assert_eq!(app.components().len(), 0);
 
-        let component = ComponentRef::new("comp-id", "Component", ComponentKind::Frontend, "1.0.0")
-            .unwrap();
+        let component =
+            ComponentRef::new("comp-id", "Component", ComponentKind::Frontend, "1.0.0").unwrap();
         app.add_component(component);
 
         assert_eq!(app.components().len(), 1);
@@ -576,10 +574,10 @@ mod tests {
 
     #[test]
     fn test_osnova_application_components_by_kind() {
-        let frontend = ComponentRef::new("frontend-id", "Frontend", ComponentKind::Frontend, "1.0.0")
-            .unwrap();
-        let backend = ComponentRef::new("backend-id", "Backend", ComponentKind::Backend, "1.0.0")
-            .unwrap();
+        let frontend =
+            ComponentRef::new("frontend-id", "Frontend", ComponentKind::Frontend, "1.0.0").unwrap();
+        let backend =
+            ComponentRef::new("backend-id", "Backend", ComponentKind::Backend, "1.0.0").unwrap();
 
         let app = OsnovaApplication::new(
             "app-id",
@@ -602,8 +600,8 @@ mod tests {
 
     #[test]
     fn test_osnova_application_find_component() {
-        let component = ComponentRef::new("comp-id", "Component", ComponentKind::Frontend, "1.0.0")
-            .unwrap();
+        let component =
+            ComponentRef::new("comp-id", "Component", ComponentKind::Frontend, "1.0.0").unwrap();
 
         let app = OsnovaApplication::new(
             "app-id",
@@ -637,22 +635,16 @@ mod tests {
         .with_publisher("publisher-id");
 
         let json = serde_json::to_string(&app).expect("Failed to serialize");
-        let deserialized: OsnovaApplication = serde_json::from_str(&json)
-            .expect("Failed to deserialize");
+        let deserialized: OsnovaApplication =
+            serde_json::from_str(&json).expect("Failed to deserialize");
 
         assert_eq!(app, deserialized);
     }
 
     #[test]
     fn test_osnova_application_invalid_version() {
-        let result = OsnovaApplication::new(
-            "app-id",
-            "My App",
-            "1.0",
-            "icon-uri",
-            "Description",
-            vec![],
-        );
+        let result =
+            OsnovaApplication::new("app-id", "My App", "1.0", "icon-uri", "Description", vec![]);
 
         assert!(result.is_err());
     }

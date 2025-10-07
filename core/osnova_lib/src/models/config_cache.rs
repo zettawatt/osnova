@@ -222,11 +222,7 @@ impl AppCache {
     /// assert_eq!(cache.user_id(), "user-456");
     /// assert_eq!(cache.entries(), &[1, 2, 3]);
     /// ```
-    pub fn new(
-        app_id: impl Into<String>,
-        user_id: impl Into<String>,
-        entries: Vec<u8>,
-    ) -> Self {
+    pub fn new(app_id: impl Into<String>, user_id: impl Into<String>, entries: Vec<u8>) -> Self {
         Self {
             app_id: app_id.into(),
             user_id: user_id.into(),
@@ -400,8 +396,8 @@ mod tests {
         config.set_setting("theme", json!("dark"));
 
         let json = serde_json::to_string(&config).expect("Failed to serialize");
-        let deserialized: AppConfiguration = serde_json::from_str(&json)
-            .expect("Failed to deserialize");
+        let deserialized: AppConfiguration =
+            serde_json::from_str(&json).expect("Failed to deserialize");
 
         assert_eq!(config.app_id(), deserialized.app_id());
         assert_eq!(config.user_id(), deserialized.user_id());
@@ -463,8 +459,7 @@ mod tests {
         let cache = AppCache::with_timestamp("app-123", "user-456", vec![1, 2, 3], 1000);
 
         let json = serde_json::to_string(&cache).expect("Failed to serialize");
-        let deserialized: AppCache = serde_json::from_str(&json)
-            .expect("Failed to deserialize");
+        let deserialized: AppCache = serde_json::from_str(&json).expect("Failed to deserialize");
 
         assert_eq!(cache, deserialized);
     }

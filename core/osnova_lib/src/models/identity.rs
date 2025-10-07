@@ -22,8 +22,8 @@
 //! let master_key = identity.master_key();
 //! ```
 
-use crate::Result;
 use crate::OsnovaError;
+use crate::Result;
 use bip39::{Language, Mnemonic};
 use blake3::Hasher;
 use hkdf::Hkdf;
@@ -108,10 +108,7 @@ impl RootIdentity {
     /// - Info: empty
     /// - Output: 32 bytes (256 bits)
     fn derive_master_key(seed: &[u8]) -> Result<[u8; 32]> {
-        let hk = Hkdf::<Sha256>::new(
-            Some(b"osnova-master-key-v1"),
-            seed
-        );
+        let hk = Hkdf::<Sha256>::new(Some(b"osnova-master-key-v1"), seed);
 
         let mut master_key = [0u8; 32];
         hk.expand(&[], &mut master_key)
@@ -166,10 +163,7 @@ impl RootIdentity {
         // Create info from index
         let info = index.to_le_bytes();
 
-        let hk = Hkdf::<Sha256>::new(
-            Some(salt_data.as_bytes()),
-            &self.master_key
-        );
+        let hk = Hkdf::<Sha256>::new(Some(salt_data.as_bytes()), &self.master_key);
 
         let mut component_key = [0u8; 32];
         hk.expand(&info, &mut component_key)
@@ -273,7 +267,8 @@ mod tests {
     fn test_derive_component_key() {
         let identity = RootIdentity::generate().expect("Failed to generate");
 
-        let wallet_key = identity.derive_component_key("com.osnova.wallet", 0, "signing")
+        let wallet_key = identity
+            .derive_component_key("com.osnova.wallet", 0, "signing")
             .expect("Failed to derive key");
 
         assert_eq!(wallet_key.len(), 32);
@@ -284,9 +279,11 @@ mod tests {
     fn test_component_key_isolation() {
         let identity = RootIdentity::generate().expect("Failed to generate");
 
-        let wallet_key = identity.derive_component_key("com.osnova.wallet", 0, "signing")
+        let wallet_key = identity
+            .derive_component_key("com.osnova.wallet", 0, "signing")
             .expect("Failed to derive wallet key");
-        let storage_key = identity.derive_component_key("com.osnova.storage", 0, "encryption")
+        let storage_key = identity
+            .derive_component_key("com.osnova.storage", 0, "encryption")
             .expect("Failed to derive storage key");
 
         // Different components should have different keys
@@ -297,9 +294,11 @@ mod tests {
     fn test_component_key_index_isolation() {
         let identity = RootIdentity::generate().expect("Failed to generate");
 
-        let key0 = identity.derive_component_key("com.osnova.wallet", 0, "signing")
+        let key0 = identity
+            .derive_component_key("com.osnova.wallet", 0, "signing")
             .expect("Failed");
-        let key1 = identity.derive_component_key("com.osnova.wallet", 1, "signing")
+        let key1 = identity
+            .derive_component_key("com.osnova.wallet", 1, "signing")
             .expect("Failed");
 
         // Different indexes should produce different keys
@@ -310,9 +309,11 @@ mod tests {
     fn test_component_key_purpose_isolation() {
         let identity = RootIdentity::generate().expect("Failed to generate");
 
-        let signing_key = identity.derive_component_key("com.osnova.wallet", 0, "signing")
+        let signing_key = identity
+            .derive_component_key("com.osnova.wallet", 0, "signing")
             .expect("Failed");
-        let encryption_key = identity.derive_component_key("com.osnova.wallet", 0, "encryption")
+        let encryption_key = identity
+            .derive_component_key("com.osnova.wallet", 0, "encryption")
             .expect("Failed");
 
         // Different purposes should produce different keys
@@ -325,9 +326,11 @@ mod tests {
         let identity1 = RootIdentity::from_seed(seed).expect("Failed");
         let identity2 = RootIdentity::from_seed(seed).expect("Failed");
 
-        let key1 = identity1.derive_component_key("com.osnova.wallet", 0, "signing")
+        let key1 = identity1
+            .derive_component_key("com.osnova.wallet", 0, "signing")
             .expect("Failed");
-        let key2 = identity2.derive_component_key("com.osnova.wallet", 0, "signing")
+        let key2 = identity2
+            .derive_component_key("com.osnova.wallet", 0, "signing")
             .expect("Failed");
 
         // Same identity should produce same component keys

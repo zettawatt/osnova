@@ -234,8 +234,8 @@ mod tests {
     #[test]
     fn test_with_timestamp() {
         let public_key = sample_public_key();
-        let device_key = DeviceKey::with_timestamp("device-123", &public_key, 1000)
-            .expect("Failed to create");
+        let device_key =
+            DeviceKey::with_timestamp("device-123", &public_key, 1000).expect("Failed to create");
 
         assert_eq!(device_key.created_at(), 1000);
     }
@@ -281,12 +281,11 @@ mod tests {
     #[test]
     fn test_serialization() {
         let public_key = sample_public_key();
-        let device_key = DeviceKey::with_timestamp("device-123", &public_key, 1000)
-            .expect("Failed to create");
+        let device_key =
+            DeviceKey::with_timestamp("device-123", &public_key, 1000).expect("Failed to create");
 
         let json = serde_json::to_string(&device_key).expect("Failed to serialize");
-        let deserialized: DeviceKey =
-            serde_json::from_str(&json).expect("Failed to deserialize");
+        let deserialized: DeviceKey = serde_json::from_str(&json).expect("Failed to deserialize");
 
         assert_eq!(device_key, deserialized);
     }
@@ -294,13 +293,12 @@ mod tests {
     #[test]
     fn test_serialization_with_revoked() {
         let public_key = sample_public_key();
-        let mut device_key = DeviceKey::with_timestamp("device-123", &public_key, 1000)
-            .expect("Failed to create");
+        let mut device_key =
+            DeviceKey::with_timestamp("device-123", &public_key, 1000).expect("Failed to create");
         device_key.revoke_at(2000);
 
         let json = serde_json::to_string(&device_key).expect("Failed to serialize");
-        let deserialized: DeviceKey =
-            serde_json::from_str(&json).expect("Failed to deserialize");
+        let deserialized: DeviceKey = serde_json::from_str(&json).expect("Failed to deserialize");
 
         assert_eq!(device_key, deserialized);
         assert!(deserialized.is_revoked());
@@ -310,10 +308,10 @@ mod tests {
     #[test]
     fn test_equality() {
         let public_key = sample_public_key();
-        let device_key1 = DeviceKey::with_timestamp("device-123", &public_key, 1000)
-            .expect("Failed to create");
-        let device_key2 = DeviceKey::with_timestamp("device-123", &public_key, 1000)
-            .expect("Failed to create");
+        let device_key1 =
+            DeviceKey::with_timestamp("device-123", &public_key, 1000).expect("Failed to create");
+        let device_key2 =
+            DeviceKey::with_timestamp("device-123", &public_key, 1000).expect("Failed to create");
 
         assert_eq!(device_key1, device_key2);
     }
@@ -324,10 +322,10 @@ mod tests {
         let mut public_key2 = sample_public_key();
         public_key2[0] = 99;
 
-        let device_key1 = DeviceKey::with_timestamp("device-123", &public_key1, 1000)
-            .expect("Failed to create");
-        let device_key2 = DeviceKey::with_timestamp("device-123", &public_key2, 1000)
-            .expect("Failed to create");
+        let device_key1 =
+            DeviceKey::with_timestamp("device-123", &public_key1, 1000).expect("Failed to create");
+        let device_key2 =
+            DeviceKey::with_timestamp("device-123", &public_key2, 1000).expect("Failed to create");
 
         assert_ne!(device_key1, device_key2);
     }
@@ -335,10 +333,10 @@ mod tests {
     #[test]
     fn test_different_device_ids_not_equal() {
         let public_key = sample_public_key();
-        let device_key1 = DeviceKey::with_timestamp("device-123", &public_key, 1000)
-            .expect("Failed to create");
-        let device_key2 = DeviceKey::with_timestamp("device-456", &public_key, 1000)
-            .expect("Failed to create");
+        let device_key1 =
+            DeviceKey::with_timestamp("device-123", &public_key, 1000).expect("Failed to create");
+        let device_key2 =
+            DeviceKey::with_timestamp("device-456", &public_key, 1000).expect("Failed to create");
 
         assert_ne!(device_key1, device_key2);
     }

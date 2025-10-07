@@ -27,16 +27,16 @@
 
 /// Data models for Osnova entities
 pub mod models {
-    pub mod identity;
-    pub mod device_key;
     pub mod application;
     pub mod config_cache;
+    pub mod device_key;
+    pub mod identity;
     pub mod pairing;
 }
 
 /// Cryptographic operations (key derivation, encryption)
 pub mod crypto {
-    // Crypto operations will be implemented in Phase 1 tasks
+    pub mod key_derivation;
 }
 
 /// Storage layer (SQLite, encrypted files)
