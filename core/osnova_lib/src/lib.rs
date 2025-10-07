@@ -29,6 +29,7 @@
 pub mod models {
     pub mod identity;
     pub mod device_key;
+    pub mod application;
 }
 
 /// Cryptographic operations (key derivation, encryption)
