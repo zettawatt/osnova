@@ -70,6 +70,115 @@ When exposed externally (stand-alone or server mode), the osnova-core service pr
 - `component.fetch` - Fetch and cache a component from Autonomi network
 - `component.clearCache` - Clear the component cache
 
+##### `component.fetch`
+Fetch and cache a component from the Autonomi network.
+
+**Request**:
+```json
+{
+  "method": "component.fetch",
+  "params": {
+    "componentId": "ant://...",
+    "manifestUri": "ant://...",
+    "expectedHash": "base64_blake3_hash"
+  }
+}
+```
+
+**Response**:
+```json
+{
+  "result": {
+    "componentId": "ant://...",
+    "path": "/tmp/osnova-component-v1.0.0",
+    "kind": "frontend",
+    "size": 1024000,
+    "cached": true,
+    "extracted": true
+  }
+}
+```
+
+**Parameters**:
+- `componentId` (required): Component ID/URI (ant://, file://, or https://)
+- `manifestUri` (optional): Manifest URI to resolve component metadata
+- `expectedHash` (optional): Blake3 hash for integrity verification (base64)
+
+**Behavior**:
+1. Check local cache first (by component ID + version)
+2. If cached and hash matches, return cached path immediately
+3. If not cached, fetch from source (ant://, file://, or https://)
+4. Verify hash if provided (Blake3)
+5. Store in cache
+6. Extract if frontend tarball (ZLIB compressed)
+7. Make executable if backend binary (Unix)
+8. Return path to prepared component
+
+**Error Codes**:
+- `-32001`: Component not found at URI
+- `-32002`: Network unavailable
+- `-32004`: Hash verification failed
+- `-32005`: Invalid URI scheme (must be ant://, file://, or https://)
+- `-32006`: Extraction failed (frontend)
+- `-32007`: Cache full/eviction failed
+
+##### `component.list`
+List all cached components.
+
+**Request**:
+```json
+{
+  "method": "component.list",
+  "params": {}
+}
+```
+
+**Response**:
+```json
+{
+  "result": {
+    "components": [
+      {
+        "id": "ant://abc123",
+        "version": "1.0.0",
+        "kind": "frontend",
+        "size": 1024000,
+        "lastAccessed": 1633024800,
+        "path": "/cache/osnova-app-v1.0.0"
+      }
+    ],
+    "totalSize": 5242880,
+    "cacheLimit": 524288000
+  }
+}
+```
+
+##### `component.clearCache`
+Clear the component cache.
+
+**Request**:
+```json
+{
+  "method": "component.clearCache",
+  "params": {
+    "componentId": "ant://abc123"
+  }
+}
+```
+
+**Parameters**:
+- `componentId` (optional): Clear specific component, or all if omitted
+
+**Response**:
+```json
+{
+  "result": {
+    "cleared": true,
+    "bytesFreed": 1024000
+  }
+}
+```
+
 #### UI Operations
 - `ui.setTheme` - Set theme mode (light/dark/system)
 - `ui.getTheme` - Get current theme mode
