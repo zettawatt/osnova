@@ -1,5 +1,5 @@
 import { writable } from 'svelte/store';
-import { invoke } from '@tauri-apps/api/core';
+import { invoke } from '$lib/utils/tauri';
 
 export type BottomMenuTab = 'launcher' | 'wallet' | 'config' | 'deployment';
 
