@@ -5,9 +5,10 @@
     app: AppListItem;
     size?: 'sm' | 'md' | 'lg';
     onclick?: () => void;
+    oncontextmenu?: (event: MouseEvent) => void;
   }
 
-  let { app, size = 'md', onclick }: AppIconProps = $props();
+  let { app, size = 'md', onclick, oncontextmenu }: AppIconProps = $props();
 
   let sizeClass = $derived(`icon-${size}`);
 
@@ -46,6 +47,7 @@
   tabindex="0"
   onclick={handleClick}
   onkeydown={handleKeyDown}
+  oncontextmenu={oncontextmenu}
   aria-label={`Launch ${app.name}`}
 >
   <div class="icon-container">

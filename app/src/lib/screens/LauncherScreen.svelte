@@ -1,11 +1,16 @@
 <script lang="ts">
   import { onMount } from 'svelte';
-  import { appsStore } from '$lib/stores/apps';
+  import { appsStore, type AppListItem } from '$lib/stores/apps';
   import { launcherStore } from '$lib/stores/launcher';
   import AppGrid from '$lib/components/AppGrid.svelte';
   import Button from '$lib/components/Button.svelte';
+  import AppInstallDialog from '$lib/components/AppInstallDialog.svelte';
+  import AppUninstallDialog from '$lib/components/AppUninstallDialog.svelte';
 
   let error = $state<string | null>(null);
+  let showInstallDialog = $state(false);
+  let showUninstallDialog = $state(false);
+  let appToUninstall = $state<AppListItem | null>(null);
 
   onMount(async () => {
     // Load apps and layout on mount
@@ -31,12 +36,45 @@
     appsStore.clearError();
     launcherStore.clearError();
   }
+
+  function handleInstallClick() {
+    showInstallDialog = true;
+  }
+
+  function handleInstallClose() {
+    showInstallDialog = false;
+  }
+
+  function handleInstallSuccess() {
+    showInstallDialog = false;
+    // Apps will be reloaded by the dialog
+  }
+
+  function handleUninstallRequest(app: AppListItem) {
+    appToUninstall = app;
+    showUninstallDialog = true;
+  }
+
+  function handleUninstallClose() {
+    showUninstallDialog = false;
+    appToUninstall = null;
+  }
+
+  function handleUninstallSuccess() {
+    showUninstallDialog = false;
+    appToUninstall = null;
+    // Apps will be reloaded by the dialog
+  }
 </script>
 
 <div class="launcher-screen">
   <header class="launcher-header">
     <h1>My Apps</h1>
     <div class="actions">
+      <Button variant="primary" size="sm" onclick={handleInstallClick}>
+        <span>➕</span>
+        Install App
+      </Button>
       <Button variant="ghost" size="sm" onclick={handleRefresh}>
         <span>🔄</span>
         Refresh
@@ -57,8 +95,20 @@
   {/if}
 
   <main class="launcher-content">
-    <AppGrid />
+    <AppGrid onUninstallRequest={handleUninstallRequest} />
   </main>
+
+  {#if showInstallDialog}
+    <AppInstallDialog onClose={handleInstallClose} onSuccess={handleInstallSuccess} />
+  {/if}
+
+  {#if showUninstallDialog && appToUninstall}
+    <AppUninstallDialog
+      app={appToUninstall}
+      onClose={handleUninstallClose}
+      onSuccess={handleUninstallSuccess}
+    />
+  {/if}
 </div>
 
 <style>

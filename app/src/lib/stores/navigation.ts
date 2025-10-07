@@ -1,7 +1,7 @@
 import { writable } from 'svelte/store';
 import { invoke } from '@tauri-apps/api/core';
 
-export type BottomMenuTab = 'launcher' | 'wallet' | 'config';
+export type BottomMenuTab = 'launcher' | 'wallet' | 'config' | 'deployment';
 
 interface NavigationState {
   activeTab: BottomMenuTab;

@@ -19,6 +19,7 @@
   const menuItems: MenuItem[] = [
     { id: 'launcher', label: 'Launcher', icon: '🚀' },
     { id: 'wallet', label: 'Wallet', icon: '💰' },
+    { id: 'deployment', label: 'Deploy', icon: '📦' },
     { id: 'config', label: 'Settings', icon: '⚙️' }
   ];
 

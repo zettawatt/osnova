@@ -6,6 +6,7 @@
   import LauncherScreen from '$lib/screens/LauncherScreen.svelte';
   import WalletScreen from '$lib/screens/WalletScreen.svelte';
   import ConfigScreen from '$lib/screens/ConfigScreen.svelte';
+  import DeploymentScreen from '$lib/screens/DeploymentScreen.svelte';
   import OnboardingScreen from '$lib/screens/OnboardingScreen.svelte';
   import CreateIdentityFlow from '$lib/components/CreateIdentityFlow.svelte';
   import ImportIdentityFlow from '$lib/components/ImportIdentityFlow.svelte';
@@ -74,6 +75,8 @@
       <LauncherScreen />
     {:else if activeTab === 'wallet'}
       <WalletScreen />
+    {:else if activeTab === 'deployment'}
+      <DeploymentScreen />
     {:else if activeTab === 'config'}
       <ConfigScreen />
     {/if}

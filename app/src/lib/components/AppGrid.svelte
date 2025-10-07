@@ -3,6 +3,12 @@
   import { launcherStore } from '$lib/stores/launcher';
   import AppIcon from './AppIcon.svelte';
 
+  interface AppGridProps {
+    onUninstallRequest?: (app: AppListItem) => void;
+  }
+
+  let { onUninstallRequest }: AppGridProps = $props();
+
   let apps = $state<AppListItem[]>([]);
   let layout = $state<string[]>([]);
   let loading = $state(false);
@@ -44,6 +50,11 @@
       // TODO: Show error toast
     }
   }
+
+  function handleContextMenu(event: MouseEvent, app: AppListItem) {
+    event.preventDefault();
+    onUninstallRequest?.(app);
+  }
 </script>
 
 <div class="app-grid-container">
@@ -61,7 +72,12 @@
   {:else}
     <div class="app-grid">
       {#each sortedApps() as app (app.id)}
-        <AppIcon {app} size="md" onclick={() => handleLaunchApp(app.id)} />
+        <AppIcon
+          {app}
+          size="md"
+          onclick={() => handleLaunchApp(app.id)}
+          oncontextmenu={(e) => handleContextMenu(e, app)}
+        />
       {/each}
     </div>
   {/if}
