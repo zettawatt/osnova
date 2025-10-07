@@ -31,6 +31,7 @@ pub mod models {
     pub mod config_cache;
     pub mod device_key;
     pub mod identity;
+    pub mod key_cocoon;
     pub mod pairing;
 }
 
@@ -41,14 +42,10 @@ pub mod crypto {
 }
 
 /// Storage layer (SQLite, encrypted files)
-pub mod storage {
-    // Storage backends will be implemented in Phase 1 tasks
-}
+pub mod storage;
 
 /// Core services (identity, keys, config, storage)
-pub mod services {
-    // Services will be implemented in Phase 1 tasks
-}
+pub mod services;
 
 /// Error types for Osnova operations
 pub mod error {
