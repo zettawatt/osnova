@@ -223,12 +223,14 @@ impl IdentityService {
 
     /// Load identity from encrypted storage
     fn load_identity(&self, encryption_key: &[u8; 32]) -> Result<RootIdentity> {
-        let encrypted_data = self.storage.read(&self.identity_path, encryption_key)
+        let encrypted_data = self
+            .storage
+            .read(&self.identity_path, encryption_key)
             .context("Failed to read identity from storage")?;
 
         // Deserialize the seed phrase
-        let seed_phrase: String = serde_json::from_slice(&encrypted_data)
-            .context("Failed to deserialize seed phrase")?;
+        let seed_phrase: String =
+            serde_json::from_slice(&encrypted_data).context("Failed to deserialize seed phrase")?;
 
         // Reconstruct identity from seed phrase
         let identity = RootIdentity::from_seed(&seed_phrase)
@@ -241,10 +243,11 @@ impl IdentityService {
     fn save_identity(&self, identity: &RootIdentity, encryption_key: &[u8; 32]) -> Result<()> {
         // Save only the seed phrase (it's enough to reconstruct everything)
         let seed_phrase = identity.seed_phrase();
-        let seed_json = serde_json::to_vec(seed_phrase)
-            .context("Failed to serialize seed phrase")?;
+        let seed_json =
+            serde_json::to_vec(seed_phrase).context("Failed to serialize seed phrase")?;
 
-        self.storage.write(&self.identity_path, &seed_json, encryption_key)
+        self.storage
+            .write(&self.identity_path, &seed_json, encryption_key)
             .context("Failed to write identity to storage")?;
 
         Ok(())
@@ -289,8 +292,7 @@ impl IdentityService {
         let entropy = &fingerprint[0..16];
 
         // Generate a mnemonic and take first 4 words
-        let mnemonic = Mnemonic::from_entropy(entropy)
-            .expect("Valid entropy");
+        let mnemonic = Mnemonic::from_entropy(entropy).expect("Valid entropy");
 
         let words: Vec<&str> = mnemonic.words().take(4).collect();
         words.join(" ")

@@ -175,8 +175,8 @@ impl UIService {
     pub fn set_theme(&self, theme: Theme) -> Result<()> {
         let config = ThemeConfig::with_theme(theme);
 
-        let config_json = serde_json::to_vec(&config)
-            .context("Failed to serialize theme config")?;
+        let config_json =
+            serde_json::to_vec(&config).context("Failed to serialize theme config")?;
 
         self.file_storage
             .write(&self.theme_path, &config_json, &self.encryption_key)

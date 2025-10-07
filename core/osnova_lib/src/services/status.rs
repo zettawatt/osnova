@@ -266,10 +266,7 @@ mod tests {
     fn test_set_status_failed() -> Result<()> {
         let mut service = StatusService::new();
 
-        service.set_status(
-            ServerStatus::Failed,
-            Some("192.168.1.100:8080".to_string()),
-        );
+        service.set_status(ServerStatus::Failed, Some("192.168.1.100:8080".to_string()));
         let status = service.get_server()?;
 
         assert_eq!(status.status, ServerStatus::Failed);

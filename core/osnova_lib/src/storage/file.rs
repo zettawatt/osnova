@@ -47,8 +47,7 @@ impl FileStorage {
     /// Returns an error if the base directory cannot be created
     pub fn new<P: AsRef<Path>>(base_path: P) -> Result<Self> {
         let base_path = base_path.as_ref().to_path_buf();
-        fs::create_dir_all(&base_path)
-            .context("Failed to create storage directory")?;
+        fs::create_dir_all(&base_path).context("Failed to create storage directory")?;
 
         Ok(Self { base_path })
     }
@@ -89,14 +88,12 @@ impl FileStorage {
 
         // Create parent directories
         if let Some(parent) = full_path.parent() {
-            fs::create_dir_all(parent)
-                .context("Failed to create parent directories")?;
+            fs::create_dir_all(parent).context("Failed to create parent directories")?;
         }
 
         // Encrypt data
         let encryption = CocoonEncryption::new(encryption_key);
-        let encrypted = encryption.encrypt(data)
-            .context("Failed to encrypt data")?;
+        let encrypted = encryption.encrypt(data).context("Failed to encrypt data")?;
 
         // Write to file
         fs::write(&full_path, encrypted)
@@ -143,7 +140,8 @@ impl FileStorage {
 
         // Decrypt data
         let encryption = CocoonEncryption::new(encryption_key);
-        let decrypted = encryption.decrypt(&encrypted)
+        let decrypted = encryption
+            .decrypt(&encrypted)
             .context("Failed to decrypt data")?;
 
         Ok(decrypted)
@@ -205,12 +203,8 @@ impl FileStorage {
     }
 
     /// Recursively collect files
-    fn collect_files(
-        &self,
-        dir: &Path,
-        base: &Path,
-        files: &mut Vec<PathBuf>,
-    ) -> Result<()> {
+    #[allow(clippy::only_used_in_recursion)]
+    fn collect_files(&self, dir: &Path, base: &Path, files: &mut Vec<PathBuf>) -> Result<()> {
         for entry in fs::read_dir(dir)? {
             let entry = entry?;
             let path = entry.path();

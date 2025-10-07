@@ -209,7 +209,10 @@ impl ConfigService {
         // TODO: In production, derive from user's master key
         let encryption_key = Self::derive_user_config_key(user_id);
 
-        match self.sql_storage.get_app_config(app_id, user_id, &encryption_key)? {
+        match self
+            .sql_storage
+            .get_app_config(app_id, user_id, &encryption_key)?
+        {
             Some(config) => Ok(config),
             None => Ok(AppConfiguration::new(app_id, user_id)),
         }
@@ -258,7 +261,8 @@ impl ConfigService {
         let encryption_key = Self::derive_user_config_key(user_id);
 
         // Save to database
-        self.sql_storage.set_app_config(app_id, user_id, &config, &encryption_key)?;
+        self.sql_storage
+            .set_app_config(app_id, user_id, &config, &encryption_key)?;
 
         Ok(())
     }
@@ -337,8 +341,8 @@ impl ConfigService {
 
     /// Save system configuration to encrypted file storage
     fn save_system_config(&self, config: &SystemConfig) -> Result<()> {
-        let config_json = serde_json::to_vec(config)
-            .context("Failed to serialize system config")?;
+        let config_json =
+            serde_json::to_vec(config).context("Failed to serialize system config")?;
 
         self.file_storage
             .write(&self.system_config_path, &config_json, &self.encryption_key)
@@ -455,8 +459,14 @@ mod tests {
         service.set_app_config("com.test.app", "user-123", settings)?;
 
         let config = service.get_app_config("com.test.app", "user-123")?;
-        assert_eq!(config.get_setting("theme"), Some(&serde_json::json!("dark")));
-        assert_eq!(config.get_setting("language"), Some(&serde_json::json!("en")));
+        assert_eq!(
+            config.get_setting("theme"),
+            Some(&serde_json::json!("dark"))
+        );
+        assert_eq!(
+            config.get_setting("language"),
+            Some(&serde_json::json!("en"))
+        );
 
         Ok(())
     }
@@ -488,8 +498,14 @@ mod tests {
 
         // Verify both settings exist
         let config = service.get_app_config("com.test.app", "user-123")?;
-        assert_eq!(config.get_setting("theme"), Some(&serde_json::json!("dark")));
-        assert_eq!(config.get_setting("language"), Some(&serde_json::json!("en")));
+        assert_eq!(
+            config.get_setting("theme"),
+            Some(&serde_json::json!("dark"))
+        );
+        assert_eq!(
+            config.get_setting("language"),
+            Some(&serde_json::json!("en"))
+        );
 
         Ok(())
     }
@@ -523,8 +539,14 @@ mod tests {
         let config1 = service.get_app_config("com.test.app", "user-1")?;
         let config2 = service.get_app_config("com.test.app", "user-2")?;
 
-        assert_eq!(config1.get_setting("theme"), Some(&serde_json::json!("dark")));
-        assert_eq!(config2.get_setting("theme"), Some(&serde_json::json!("light")));
+        assert_eq!(
+            config1.get_setting("theme"),
+            Some(&serde_json::json!("dark"))
+        );
+        assert_eq!(
+            config2.get_setting("theme"),
+            Some(&serde_json::json!("light"))
+        );
 
         Ok(())
     }

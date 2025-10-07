@@ -160,8 +160,8 @@ impl LauncherService {
     pub fn set_layout(&self, app_ids: Vec<String>) -> Result<()> {
         let layout = LauncherLayout::with_apps(app_ids);
 
-        let layout_json = serde_json::to_vec(&layout)
-            .context("Failed to serialize launcher layout")?;
+        let layout_json =
+            serde_json::to_vec(&layout).context("Failed to serialize launcher layout")?;
 
         self.file_storage
             .write(&self.layout_path, &layout_json, &self.encryption_key)

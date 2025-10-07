@@ -47,6 +47,9 @@ pub mod storage;
 /// Core services (identity, keys, config, storage)
 pub mod services;
 
+/// Network operations (Autonomi integration)
+pub mod network;
+
 /// Error types for Osnova operations
 pub mod error {
     use thiserror::Error;
@@ -69,6 +72,10 @@ pub mod error {
         /// Identity operation failed
         #[error("Identity error: {0}")]
         Identity(String),
+
+        /// Network operation failed
+        #[error("Network error: {0}")]
+        Network(String),
 
         /// Serialization/deserialization failed
         #[error("Serialization error: {0}")]

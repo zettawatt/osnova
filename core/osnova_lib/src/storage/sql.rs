@@ -58,8 +58,9 @@ impl SqlStorage {
 
     /// Initialize database schema
     fn initialize_schema(&self) -> Result<()> {
-        self.conn.execute_batch(
-            r#"
+        self.conn
+            .execute_batch(
+                r#"
             CREATE TABLE IF NOT EXISTS applications (
                 id TEXT PRIMARY KEY,
                 data TEXT NOT NULL,
@@ -98,8 +99,8 @@ impl SqlStorage {
             CREATE INDEX IF NOT EXISTS idx_pairing_sessions_status
                 ON pairing_sessions(status);
             "#,
-        )
-        .context("Failed to initialize schema")?;
+            )
+            .context("Failed to initialize schema")?;
 
         Ok(())
     }
@@ -110,17 +111,17 @@ impl SqlStorage {
 
     /// Insert or update an application
     pub fn upsert_application(&self, app: &OsnovaApplication) -> Result<()> {
-        let app_json = serde_json::to_string(app)
-            .context("Failed to serialize application")?;
+        let app_json = serde_json::to_string(app).context("Failed to serialize application")?;
 
-        self.conn.execute(
-            "INSERT INTO applications (id, data)
+        self.conn
+            .execute(
+                "INSERT INTO applications (id, data)
              VALUES (?1, ?2)
              ON CONFLICT(id) DO UPDATE SET
                 data = excluded.data",
-            params![app.id(), &app_json],
-        )
-        .context("Failed to upsert application")?;
+                params![app.id(), &app_json],
+            )
+            .context("Failed to upsert application")?;
 
         Ok(())
     }
@@ -182,14 +183,14 @@ impl SqlStorage {
 
     /// Insert a device key
     pub fn insert_device_key(&self, key: &DeviceKey) -> Result<()> {
-        let key_json = serde_json::to_string(key)
-            .context("Failed to serialize device key")?;
+        let key_json = serde_json::to_string(key).context("Failed to serialize device key")?;
 
-        self.conn.execute(
-            "INSERT INTO device_keys (device_id, data) VALUES (?1, ?2)",
-            params![key.device_id(), &key_json],
-        )
-        .context("Failed to insert device key")?;
+        self.conn
+            .execute(
+                "INSERT INTO device_keys (device_id, data) VALUES (?1, ?2)",
+                params![key.device_id(), &key_json],
+            )
+            .context("Failed to insert device key")?;
 
         Ok(())
     }
@@ -256,8 +257,7 @@ impl SqlStorage {
 
         // Revoke and update
         key.revoke_at(revoked_at as u64);
-        let key_json = serde_json::to_string(&key)
-            .context("Failed to serialize device key")?;
+        let key_json = serde_json::to_string(&key).context("Failed to serialize device key")?;
 
         let rows_affected = self
             .conn
@@ -282,22 +282,23 @@ impl SqlStorage {
             PairingStatus::Failed => "failed",
         };
 
-        self.conn.execute(
-            "INSERT INTO pairing_sessions
+        self.conn
+            .execute(
+                "INSERT INTO pairing_sessions
              (session_id, server_public_key, device_public_key, established_at, expires_at, status)
              VALUES (?1, ?2, ?3, ?4, ?5, ?6)
              ON CONFLICT(session_id) DO UPDATE SET
                 status = excluded.status",
-            params![
-                session.session_id(),
-                session.server_public_key(),
-                session.device_public_key(),
-                session.established_at().unwrap_or(0),
-                session.expires_at().unwrap_or(0),
-                status_str,
-            ],
-        )
-        .context("Failed to upsert pairing session")?;
+                params![
+                    session.session_id(),
+                    session.server_public_key(),
+                    session.device_public_key(),
+                    session.established_at().unwrap_or(0),
+                    session.expires_at().unwrap_or(0),
+                    status_str,
+                ],
+            )
+            .context("Failed to upsert pairing session")?;
 
         Ok(())
     }
@@ -387,21 +388,22 @@ impl SqlStorage {
         config: &AppConfiguration,
         encryption_key: &[u8; 32],
     ) -> Result<()> {
-        let config_json = serde_json::to_vec(config)
-            .context("Failed to serialize config")?;
+        let config_json = serde_json::to_vec(config).context("Failed to serialize config")?;
         let encryption = CocoonEncryption::new(encryption_key);
-        let encrypted = encryption.encrypt(&config_json)
+        let encrypted = encryption
+            .encrypt(&config_json)
             .context("Failed to encrypt config")?;
 
-        self.conn.execute(
-            "INSERT INTO app_configurations (app_id, user_id, settings_encrypted, updated_at)
+        self.conn
+            .execute(
+                "INSERT INTO app_configurations (app_id, user_id, settings_encrypted, updated_at)
              VALUES (?1, ?2, ?3, strftime('%s', 'now'))
              ON CONFLICT(app_id, user_id) DO UPDATE SET
                 settings_encrypted = excluded.settings_encrypted,
                 updated_at = excluded.updated_at",
-            params![app_id, user_id, &encrypted],
-        )
-        .context("Failed to upsert app configuration")?;
+                params![app_id, user_id, &encrypted],
+            )
+            .context("Failed to upsert app configuration")?;
 
         Ok(())
     }
@@ -431,10 +433,11 @@ impl SqlStorage {
         match encrypted {
             Some(data) => {
                 let encryption = CocoonEncryption::new(encryption_key);
-                let decrypted = encryption.decrypt(&data)
+                let decrypted = encryption
+                    .decrypt(&data)
                     .context("Failed to decrypt config")?;
-                let config: AppConfiguration = serde_json::from_slice(&decrypted)
-                    .context("Failed to deserialize config")?;
+                let config: AppConfiguration =
+                    serde_json::from_slice(&decrypted).context("Failed to deserialize config")?;
                 Ok(Some(config))
             }
             None => Ok(None),
@@ -466,18 +469,20 @@ impl SqlStorage {
         encryption_key: &[u8; 32],
     ) -> Result<()> {
         let encryption = CocoonEncryption::new(encryption_key);
-        let encrypted = encryption.encrypt(value)
+        let encrypted = encryption
+            .encrypt(value)
             .context("Failed to encrypt blob")?;
 
-        self.conn.execute(
-            "INSERT INTO encrypted_blobs (key, value_encrypted, updated_at)
+        self.conn
+            .execute(
+                "INSERT INTO encrypted_blobs (key, value_encrypted, updated_at)
              VALUES (?1, ?2, strftime('%s', 'now'))
              ON CONFLICT(key) DO UPDATE SET
                 value_encrypted = excluded.value_encrypted,
                 updated_at = excluded.updated_at",
-            params![key, &encrypted],
-        )
-        .context("Failed to upsert encrypted blob")?;
+                params![key, &encrypted],
+            )
+            .context("Failed to upsert encrypted blob")?;
 
         Ok(())
     }
@@ -501,7 +506,8 @@ impl SqlStorage {
         match encrypted {
             Some(data) => {
                 let encryption = CocoonEncryption::new(encryption_key);
-                let decrypted = encryption.decrypt(&data)
+                let decrypted = encryption
+                    .decrypt(&data)
                     .context("Failed to decrypt blob")?;
                 Ok(Some(decrypted))
             }
@@ -532,7 +538,8 @@ mod tests {
             "Test Component",
             ComponentKind::Frontend,
             "1.0.0",
-        ).unwrap();
+        )
+        .unwrap();
 
         OsnovaApplication::new(
             "app-001",
@@ -541,7 +548,8 @@ mod tests {
             "https://example.com/icon.png",
             "Test application description",
             vec![component],
-        ).unwrap()
+        )
+        .unwrap()
     }
 
     #[test]
@@ -695,13 +703,16 @@ mod tests {
         storage.set_app_config(config.app_id(), config.user_id(), &config, &encryption_key)?;
 
         // Get config
-        let retrieved = storage.get_app_config(config.app_id(), config.user_id(), &encryption_key)?;
+        let retrieved =
+            storage.get_app_config(config.app_id(), config.user_id(), &encryption_key)?;
         assert!(retrieved.is_some());
         assert_eq!(retrieved.as_ref().unwrap().settings().len(), 1);
 
         // Delete config
         assert!(storage.delete_app_config(config.app_id(), config.user_id())?);
-        assert!(storage.get_app_config(config.app_id(), config.user_id(), &encryption_key)?.is_none());
+        assert!(storage
+            .get_app_config(config.app_id(), config.user_id(), &encryption_key)?
+            .is_none());
 
         Ok(())
     }
@@ -722,7 +733,9 @@ mod tests {
 
         // Delete blob
         assert!(storage.delete_encrypted_blob("test-key")?);
-        assert!(storage.get_encrypted_blob("test-key", &encryption_key)?.is_none());
+        assert!(storage
+            .get_encrypted_blob("test-key", &encryption_key)?
+            .is_none());
 
         Ok(())
     }

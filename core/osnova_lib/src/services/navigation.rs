@@ -175,8 +175,8 @@ impl NavigationService {
     pub fn set_bottom_menu(&self, tab: BottomMenuTab) -> Result<()> {
         let config = BottomMenuConfig::with_tab(tab);
 
-        let config_json = serde_json::to_vec(&config)
-            .context("Failed to serialize navigation config")?;
+        let config_json =
+            serde_json::to_vec(&config).context("Failed to serialize navigation config")?;
 
         self.file_storage
             .write(&self.nav_path, &config_json, &self.encryption_key)

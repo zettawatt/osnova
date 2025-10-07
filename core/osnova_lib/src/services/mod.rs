@@ -31,11 +31,11 @@ pub mod navigation;
 /// Status management service
 pub mod status;
 
+pub use apps::AppsService;
+pub use config::ConfigService;
 pub use identity::IdentityService;
 pub use keys::KeyService;
-pub use config::ConfigService;
-pub use apps::AppsService;
 pub use launcher::LauncherService;
-pub use ui::{UIService, Theme};
-pub use navigation::{NavigationService, BottomMenuTab};
-pub use status::{StatusService, ServerStatus, ServerStatusResponse};
+pub use navigation::{BottomMenuTab, NavigationService};
+pub use status::{ServerStatus, ServerStatusResponse, StatusService};
+pub use ui::{Theme, UIService};

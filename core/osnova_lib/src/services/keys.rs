@@ -142,7 +142,10 @@ impl KeyService {
         let mut cocoon = self.load_cocoon()?;
 
         // Find next available index
-        let next_index = cocoon.highest_index(component_id).map(|i| i + 1).unwrap_or(0);
+        let next_index = cocoon
+            .highest_index(component_id)
+            .map(|i| i + 1)
+            .unwrap_or(0);
 
         // Derive key at next index
         self.derive_at_index_internal(&mut cocoon, component_id, next_index, key_type)
@@ -286,11 +289,8 @@ impl KeyService {
         key_type: KeyType,
     ) -> Result<KeyDerivationResponse> {
         // Derive the key using HKDF
-        let derived_seed = key_derivation::derive_symmetric_key(
-            &cocoon.master_key,
-            component_id,
-            index,
-        )?;
+        let derived_seed =
+            key_derivation::derive_symmetric_key(&cocoon.master_key, component_id, index)?;
 
         // Generate key pair based on key type
         let (public_key, secret_key) = match key_type {
@@ -323,8 +323,8 @@ impl KeyService {
 
     /// Generate Ed25519 key pair from seed
     fn generate_ed25519(seed: &[u8; 32]) -> Result<(String, String)> {
+        use base64::{engine::general_purpose, Engine as _};
         use ed25519_dalek::{SigningKey, VerifyingKey};
-        use base64::{Engine as _, engine::general_purpose};
 
         let signing_key = SigningKey::from_bytes(seed);
         let verifying_key: VerifyingKey = (&signing_key).into();
@@ -337,8 +337,8 @@ impl KeyService {
 
     /// Generate X25519 key pair from seed
     fn generate_x25519(seed: &[u8; 32]) -> Result<(String, String)> {
+        use base64::{engine::general_purpose, Engine as _};
         use x25519_dalek::PublicKey;
-        use base64::{Engine as _, engine::general_purpose};
 
         // X25519: public key derived from scalar multiplication with base point
         // The seed directly serves as the secret key
@@ -346,7 +346,7 @@ impl KeyService {
         let public = PublicKey::from(secret_bytes);
 
         let public_key = general_purpose::STANDARD.encode(public.as_bytes());
-        let secret_key = general_purpose::STANDARD.encode(&secret_bytes);
+        let secret_key = general_purpose::STANDARD.encode(secret_bytes);
 
         Ok((public_key, secret_key))
     }
@@ -365,16 +365,15 @@ impl KeyService {
             .read(&self.cocoon_path, &self.cocoon_key)
             .context("Failed to read key cocoon")?;
 
-        let cocoon: KeyCocoon = serde_json::from_slice(&encrypted_data)
-            .context("Failed to deserialize key cocoon")?;
+        let cocoon: KeyCocoon =
+            serde_json::from_slice(&encrypted_data).context("Failed to deserialize key cocoon")?;
 
         Ok(cocoon)
     }
 
     /// Save cocoon to encrypted storage
     fn save_cocoon(&self, cocoon: &KeyCocoon) -> Result<()> {
-        let cocoon_json = serde_json::to_vec(cocoon)
-            .context("Failed to serialize key cocoon")?;
+        let cocoon_json = serde_json::to_vec(cocoon).context("Failed to serialize key cocoon")?;
 
         self.storage
             .write(&self.cocoon_path, &cocoon_json, &self.cocoon_key)
