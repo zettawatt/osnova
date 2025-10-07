@@ -53,6 +53,9 @@ pub mod network;
 /// Component cache (local storage)
 pub mod cache;
 
+/// Application manifest schema and validation
+pub mod manifest;
+
 /// Error types for Osnova operations
 pub mod error {
     use thiserror::Error;

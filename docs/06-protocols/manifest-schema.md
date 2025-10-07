@@ -58,6 +58,52 @@ Notes:
 - If schema validation fails: surface validation messages for debugging; do not start components.
 - Version should follow semver standards, e.g. 1.0.0
 
+## Rust Implementation
+
+The manifest schema is implemented in `core/osnova_lib/src/manifest/`:
+
+### Usage Example
+
+```rust
+use osnova_lib::manifest::{validate_manifest, ManifestSchema};
+
+// Validate from JSON string
+let json = r#"{
+    "id": "ant://...",
+    "name": "My Application",
+    "version": "1.0.0",
+    "iconUri": "ant://...",
+    "description": "Description",
+    "components": [
+        {
+            "id": "ant://...",
+            "name": "Frontend",
+            "kind": "frontend",
+            "platform": "desktop",
+            "version": "1.0.0"
+        }
+    ]
+}"#;
+
+let manifest: ManifestSchema = validate_manifest(json)?;
+println!("App: {} v{}", manifest.name, manifest.version);
+```
+
+### Validation Rules
+
+1. **Required Fields**: id, name, version, iconUri, description, components
+2. **Version Format**: Must be valid semver (x.y.z where x, y, z are integers)
+3. **Component Kind**: Must be "frontend" or "backend"
+4. **Platform** (frontend only): Must be "iOS", "Android", or "desktop"
+5. **Target** (backend only): Should match Rust target triple format
+
+### Error Messages
+
+- Missing required field: `"Failed to parse manifest JSON: missing field 'name'"`
+- Invalid version: `"Manifest validation failed: Invalid version format: 1.0"`
+- Invalid component kind: `"Component 0: Invalid component kind: 'middleware'"`
+- Invalid platform: `"Component 0: Invalid platform: 'Windows'"`
+
 ## Storage on the Autonomi Network
 
 Application manifests are always uploaded as public files, each version is its own file.
