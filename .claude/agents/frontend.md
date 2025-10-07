@@ -35,6 +35,191 @@ Svelte/TypeScript frontend specialist focused on implementing UI/UX for Osnova c
 
 **See [CLAUDE.md](../../CLAUDE.md) for universal code quality principles.**
 
+## Svelte 5 Runes
+
+Osnova uses Svelte 5 with its new runes system for reactive state management.
+
+### What are Runes?
+
+Runes are symbols prefixed with `$` that control the Svelte compiler. They are keywords built into the Svelte language.
+
+**Key characteristics**:
+- Part of Svelte syntax (not imported)
+- Not values (can't assign to variables or pass as arguments)
+- Only valid in specific positions
+- Replace Svelte 3/4 reactive patterns
+
+### Core Runes
+
+**`$state` - Reactive State**:
+```typescript
+<script lang="ts">
+  let count = $state(0);
+  let user = $state({ name: 'Alice', age: 30 });
+
+  function increment() {
+    count++; // Automatically triggers reactivity
+  }
+
+  function updateUser() {
+    user.age++; // Deep reactivity
+  }
+</script>
+```
+
+**`$derived` - Computed Values**:
+```typescript
+<script lang="ts">
+  let count = $state(0);
+  let doubled = $derived(count * 2);
+  let isEven = $derived(count % 2 === 0);
+
+  // Complex derivations
+  let apps = $state<App[]>([]);
+  let installedApps = $derived(apps.filter(app => app.installed));
+  let appCount = $derived(installedApps.length);
+</script>
+```
+
+**`$effect` - Side Effects**:
+```typescript
+<script lang="ts">
+  let count = $state(0);
+
+  // Runs when dependencies change
+  $effect(() => {
+    console.log(`Count changed to ${count}`);
+    document.title = `Count: ${count}`;
+  });
+
+  // Cleanup with return function
+  $effect(() => {
+    const interval = setInterval(() => {
+      console.log(count);
+    }, 1000);
+
+    return () => clearInterval(interval);
+  });
+</script>
+```
+
+**`$props` - Component Props**:
+```typescript
+<script lang="ts">
+  interface Props {
+    app: App;
+    onLaunch?: (id: string) => void;
+  }
+
+  let { app, onLaunch }: Props = $props();
+
+  // With defaults
+  let { theme = 'light', size = 'medium' } = $props();
+</script>
+```
+
+### Runes Best Practices
+
+**1. Prefer `$state` over legacy reactive declarations**:
+```typescript
+// ❌ Legacy (Svelte 4)
+let count = 0;
+$: doubled = count * 2;
+
+// ✅ Svelte 5 with runes
+let count = $state(0);
+let doubled = $derived(count * 2);
+```
+
+**2. Use `$derived` for computed values**:
+```typescript
+let apps = $state<App[]>([]);
+let installedCount = $derived(apps.filter(a => a.installed).length);
+let hasApps = $derived(apps.length > 0);
+```
+
+**3. Use `$effect` for side effects only**:
+```typescript
+// ✅ Good: Side effects
+$effect(() => {
+  localStorage.setItem('theme', theme);
+});
+
+// ❌ Bad: Computations (use $derived instead)
+$effect(() => {
+  doubled = count * 2; // Use $derived!
+});
+```
+
+**4. Component state management**:
+```typescript
+<script lang="ts">
+  import type { App } from './types';
+
+  interface Props {
+    apps: App[];
+  }
+
+  let { apps }: Props = $props();
+  let selectedId = $state<string | null>(null);
+  let selectedApp = $derived(
+    apps.find(app => app.id === selectedId) ?? null
+  );
+
+  function select(id: string) {
+    selectedId = id;
+  }
+</script>
+
+{#if selectedApp}
+  <div>{selectedApp.name}</div>
+{/if}
+```
+
+**5. Async state with runes**:
+```typescript
+<script lang="ts">
+  let apps = $state<App[]>([]);
+  let loading = $state(true);
+  let error = $state<string | null>(null);
+
+  async function loadApps() {
+    loading = true;
+    error = null;
+
+    try {
+      const result = await client.call('apps.list');
+      apps = result;
+    } catch (e) {
+      error = e.message;
+    } finally {
+      loading = false;
+    }
+  }
+
+  // Load on mount
+  $effect(() => {
+    loadApps();
+  });
+</script>
+```
+
+### Runes vs Legacy Mode
+
+**Runes Mode** (default for new components):
+- Uses `$state`, `$derived`, `$effect`, `$props`
+- More explicit and type-safe
+- Better performance
+- Recommended for all new code
+
+**Legacy Mode** (Svelte 3/4 compatibility):
+- Uses `$:` reactive declarations
+- `export let` for props
+- Automatically enabled in components without runes
+- Not recommended for new code
+
+**Migration Note**: Once a component uses any rune, it's in runes mode and cannot use legacy features.
+
 ## TypeScript/Svelte-Specific Code Quality Standards
 
 ### Error Handling

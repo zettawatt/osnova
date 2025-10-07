@@ -139,9 +139,9 @@ All specifications are in `docs/` organized as chapters:
 
 ### Key Dependencies
 
-**Rust**: autonomi v0.6.1 • saorsa-core (main) • cocoon v0.4.3 • serde • tokio • anyhow • thiserror
+**Rust**: autonomi v0.6.1 • saorsa-core (main) • saorsa-pqc • saorsa-fec • saorsa-seal • cocoon v0.4.3 • serde • tokio • anyhow • thiserror
 
-**TypeScript**: Svelte 4.x • @tauri-apps/api • Vitest • Playwright
+**TypeScript**: Svelte 5.x • @tauri-apps/api • Vitest • Playwright
 
 **See `Cargo.toml` and `package.json` for complete dependency lists.**
 
