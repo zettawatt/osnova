@@ -35,6 +35,7 @@ autonomi = "0.6.1"
 bytes = "1.8"
 hex = "0.4"
 reqwest = { version = "0.12", features = ["json"] }
+tar = "0.4"
 
 # TODO: Add when available
 # saorsa-core = { git = "https://github.com/dirvine/p2p", branch = "main" }

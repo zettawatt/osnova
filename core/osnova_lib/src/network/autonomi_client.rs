@@ -33,6 +33,7 @@ use tokio::sync::RwLock;
 ///
 /// Manages connection to the Autonomi Network and provides
 /// network operation methods.
+#[derive(Clone)]
 pub struct AutonomiClient {
     /// Internal Autonomi client (wrapped in Arc for thread safety)
     pub(crate) client: Arc<RwLock<Option<Client>>>,

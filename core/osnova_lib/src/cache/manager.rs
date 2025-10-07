@@ -55,6 +55,7 @@ struct CacheEntry {
 ///
 /// Manages a local cache of downloaded components with automatic
 /// eviction when the cache size exceeds the configured limit.
+#[derive(Clone)]
 pub struct CacheManager {
     /// Base cache directory
     cache_dir: PathBuf,
