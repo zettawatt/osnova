@@ -35,6 +35,8 @@
 
 pub mod schema;
 pub mod validator;
+pub mod resolver;
 
 pub use schema::{ManifestSchema, ComponentSchema};
 pub use validator::{validate_manifest, validate_manifest_bytes};
+pub use resolver::resolve_manifest;
