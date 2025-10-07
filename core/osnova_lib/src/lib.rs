@@ -36,6 +36,7 @@ pub mod models {
 
 /// Cryptographic operations (key derivation, encryption)
 pub mod crypto {
+    pub mod encryption;
     pub mod key_derivation;
 }
 
