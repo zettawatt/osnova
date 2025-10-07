@@ -32,6 +32,8 @@ base64 = "0.22"
 
 # Autonomi Network
 autonomi = "0.6.1"
+bytes = "1.8"
+hex = "0.4"
 
 # TODO: Add when available
 # saorsa-core = { git = "https://github.com/dirvine/p2p", branch = "main" }

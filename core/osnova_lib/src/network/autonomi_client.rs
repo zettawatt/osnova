@@ -35,7 +35,7 @@ use tokio::sync::RwLock;
 /// network operation methods.
 pub struct AutonomiClient {
     /// Internal Autonomi client (wrapped in Arc for thread safety)
-    client: Arc<RwLock<Option<Client>>>,
+    pub(crate) client: Arc<RwLock<Option<Client>>>,
 }
 
 impl AutonomiClient {

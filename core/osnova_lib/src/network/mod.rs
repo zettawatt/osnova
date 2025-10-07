@@ -10,17 +10,20 @@
 //! ## Example
 //!
 //! ```rust,ignore
-//! use osnova_lib::network::AutonomiClient;
+//! use osnova_lib::network::{AutonomiClient, upload_data};
 //!
 //! #[tokio::main]
 //! async fn main() -> anyhow::Result<()> {
 //!     let client = AutonomiClient::connect().await?;
-//!     let is_healthy = client.health_check().await?;
-//!     println!("Network healthy: {}", is_healthy);
+//!     let data = b"Hello, Autonomi!";
+//!     let address = upload_data(&client, data).await?;
+//!     println!("Uploaded to: {}", address);
 //!     Ok(())
 //! }
 //! ```
 
 pub mod autonomi_client;
+pub mod upload;
 
 pub use autonomi_client::AutonomiClient;
+pub use upload::{upload_data, estimate_upload_cost};
