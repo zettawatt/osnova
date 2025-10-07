@@ -1,0 +1,12 @@
+/home/system/osnova_claude/target/debug/deps/cocoon-0cf6675a355b741e.d: /home/system/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/cocoon-0.4.3/src/lib.rs /home/system/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/cocoon-0.4.3/src/error.rs /home/system/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/cocoon-0.4.3/src/format.rs /home/system/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/cocoon-0.4.3/src/header.rs /home/system/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/cocoon-0.4.3/src/kdf.rs /home/system/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/cocoon-0.4.3/src/mini.rs
+
+/home/system/osnova_claude/target/debug/deps/libcocoon-0cf6675a355b741e.rlib: /home/system/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/cocoon-0.4.3/src/lib.rs /home/system/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/cocoon-0.4.3/src/error.rs /home/system/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/cocoon-0.4.3/src/format.rs /home/system/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/cocoon-0.4.3/src/header.rs /home/system/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/cocoon-0.4.3/src/kdf.rs /home/system/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/cocoon-0.4.3/src/mini.rs
+
+/home/system/osnova_claude/target/debug/deps/libcocoon-0cf6675a355b741e.rmeta: /home/system/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/cocoon-0.4.3/src/lib.rs /home/system/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/cocoon-0.4.3/src/error.rs /home/system/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/cocoon-0.4.3/src/format.rs /home/system/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/cocoon-0.4.3/src/header.rs /home/system/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/cocoon-0.4.3/src/kdf.rs /home/system/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/cocoon-0.4.3/src/mini.rs
+
+/home/system/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/cocoon-0.4.3/src/lib.rs:
+/home/system/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/cocoon-0.4.3/src/error.rs:
+/home/system/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/cocoon-0.4.3/src/format.rs:
+/home/system/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/cocoon-0.4.3/src/header.rs:
+/home/system/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/cocoon-0.4.3/src/kdf.rs:
+/home/system/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/cocoon-0.4.3/src/mini.rs:

@@ -18,6 +18,19 @@ sha2.workspace = true
 rusqlite.workspace = true
 flate2.workspace = true
 
+# Encryption
+cocoon = "0.4"
+
+# BIP39 for seed phrases
+bip39 = { version = "2.1", features = ["rand"] }
+
+# TODO: Add when available
+# autonomi = "0.6.1"
+# saorsa-core = { git = "https://github.com/dirvine/p2p", branch = "main" }
+# saorsa-pqc = { git = "https://github.com/dirvine/saorsa-pqc" }
+# saorsa-fec = { git = "https://github.com/dirvine/saorsa-fec" }
+# saorsa-seal = { git = "https://github.com/dirvine/saorsa-seal" }
+
 [dev-dependencies]
 proptest.workspace = true
 tempfile = "3.12"
