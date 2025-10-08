@@ -312,7 +312,7 @@ pub fn run() {
     {
         use std::path::PathBuf;
         builder = builder.plugin(tauri_plugin_mcp::init_with_config(
-            tauri_plugin_mcp::PluginConfig::new("osnova".to_string())
+            tauri_plugin_mcp::PluginConfig::new("app".to_string())
                 .start_socket_server(true)
                 // Use IPC socket (Unix domain socket on Linux/macOS)
                 .socket_path(PathBuf::from("/tmp/osnova-tauri-mcp.sock")),

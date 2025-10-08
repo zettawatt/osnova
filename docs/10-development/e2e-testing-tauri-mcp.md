@@ -81,7 +81,49 @@ npm run build
 
 **Binary location**: `/home/system/tauri-mcp-server/mcp-server-ts/build/index.js`
 
-### 3. Claude Code MCP Configuration
+### 3. Frontend JavaScript Integration
+
+**CRITICAL**: The frontend must set up event listeners for the MCP plugin to work. The plugin uses Tauri's event system to communicate with the webview.
+
+**Build the plugin's JavaScript package**:
+```bash
+cd /home/system/tauri-mcp-server
+npm install
+npm run build
+```
+
+This creates `dist-js/index.js` with the `setupPluginListeners()` function.
+
+**Add to your app's package.json**:
+```json
+{
+  "dependencies": {
+    "tauri-plugin-mcp": "file:../../tauri-mcp-server"
+  }
+}
+```
+
+**Call setupPluginListeners() in your app** (see `app/src/routes/+layout.svelte`):
+```typescript
+import { onMount } from 'svelte';
+
+onMount(async () => {
+  // Setup MCP plugin listeners for E2E testing (debug builds only)
+  if (import.meta.env.DEV) {
+    try {
+      const { setupPluginListeners } = await import('tauri-plugin-mcp');
+      await setupPluginListeners();
+      console.log('MCP plugin listeners initialized');
+    } catch (e) {
+      console.warn('Failed to initialize MCP plugin listeners:', e);
+    }
+  }
+});
+```
+
+Without these listeners, webview operations (DOM access, JS execution, screenshots) will timeout!
+
+### 4. Claude Code MCP Configuration
 
 Add the following to your MCP server configuration:
 
