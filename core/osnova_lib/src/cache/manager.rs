@@ -10,27 +10,27 @@
 //!
 //! ## Example
 //!
-//! ```rust,ignore
+//! ```rust,no_run
 //! use osnova_lib::cache::CacheManager;
+//! use osnova_lib::platform::paths::get_component_cache_dir;
 //!
-//! #[tokio::main]
-//! async fn main() -> anyhow::Result<()> {
-//!     let cache_dir = "/home/user/.cache/osnova/components";
-//!     let max_size = 500 * 1024 * 1024; // 500MB
+//! # #[tokio::main]
+//! # async fn main() -> Result<(), Box<dyn std::error::Error>> {
+//! let cache_dir = get_component_cache_dir()?;
+//! let max_size = 500 * 1024 * 1024; // 500MB
 //!
-//!     let cache = CacheManager::new(cache_dir, max_size)?;
+//! let cache = CacheManager::new(cache_dir, max_size)?;
 //!
-//!     // Store component
-//!     let data = b"component data...";
-//!     cache.store("my-component-v1.0.0", data).await?;
+//! // Store component
+//! let data = b"component data...";
+//! cache.store("my-component-v1.0.0", data).await?;
 //!
-//!     // Retrieve component
-//!     if let Some(data) = cache.get("my-component-v1.0.0").await? {
-//!         println!("Cache hit! {} bytes", data.len());
-//!     }
-//!
-//!     Ok(())
+//! // Retrieve component
+//! if let Some(data) = cache.get("my-component-v1.0.0").await? {
+//!     println!("Cache hit! {} bytes", data.len());
 //! }
+//! # Ok(())
+//! # }
 //! ```
 
 use crate::error::{OsnovaError, Result};
@@ -82,8 +82,14 @@ impl CacheManager {
     ///
     /// # Example
     ///
-    /// ```rust,ignore
-    /// let cache = CacheManager::new("/home/user/.cache/osnova", 500 * 1024 * 1024)?;
+    /// ```rust,no_run
+    /// use osnova_lib::cache::CacheManager;
+    /// use osnova_lib::platform::paths::get_cache_dir;
+    ///
+    /// # fn main() -> Result<(), Box<dyn std::error::Error>> {
+    /// let cache = CacheManager::new(get_cache_dir()?, 500 * 1024 * 1024)?;
+    /// # Ok(())
+    /// # }
     /// ```
     pub fn new<P: AsRef<Path>>(cache_dir: P, max_size: usize) -> Result<Self> {
         let cache_dir = cache_dir.as_ref().to_path_buf();

@@ -37,6 +37,9 @@ hex = "0.4"
 reqwest = { version = "0.12", features = ["json"] }
 tar = "0.4"
 
+# Platform-specific directories
+dirs = "5"
+
 # TODO: Add when available
 # saorsa-core = { git = "https://github.com/dirvine/p2p", branch = "main" }
 # saorsa-pqc = { git = "https://github.com/dirvine/saorsa-pqc" }

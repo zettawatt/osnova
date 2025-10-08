@@ -59,6 +59,9 @@ pub mod manifest;
 /// Application components (download and management)
 pub mod components;
 
+/// Platform-specific utilities (paths, system integration)
+pub mod platform;
+
 /// Error types for Osnova operations
 pub mod error {
     use thiserror::Error;

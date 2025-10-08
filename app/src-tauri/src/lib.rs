@@ -294,9 +294,12 @@ fn status_get_server(state: State<AppState>) -> Result<String, String> {
 pub fn run() {
     // Determine storage path
     let storage_path = std::env::var("OSNOVA_STORAGE_PATH").unwrap_or_else(|_| {
-        let mut path = dirs::data_local_dir().expect("Failed to get local data dir");
-        path.push("osnova");
-        path.to_str().unwrap().to_string()
+        use osnova_lib::platform::paths::get_data_dir;
+        get_data_dir()
+            .expect("Failed to get data directory")
+            .to_str()
+            .expect("Failed to convert path to string")
+            .to_string()
     });
 
     let app_state = AppState::new(storage_path);

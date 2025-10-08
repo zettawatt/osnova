@@ -145,43 +145,11 @@ All specifications are in `docs/` organized as chapters:
 
 **See `Cargo.toml` and `package.json` for complete dependency lists.**
 
-### Cross-Platform Path Management
+### Cross-Platform Compatibility
 
-**Requirement**: ALL file system operations MUST use the `dirs` crate to ensure cross-platform compatibility.
+**CRITICAL**: All file operations MUST use `dirs` crate for platform-specific paths. Never hardcode paths.
 
-**Platform-Specific Directories**:
-- **Data**: `dirs::data_local_dir()` - Application data storage
-  - Linux: `~/.local/share/osnova/`
-  - macOS: `~/Library/Application Support/osnova/`
-  - Windows: `%LOCALAPPDATA%\osnova\`
-- **Cache**: `dirs::cache_dir()` - Temporary/cached data
-  - Linux: `~/.cache/osnova/`
-  - macOS: `~/Library/Caches/osnova/`
-  - Windows: `%LOCALAPPDATA%\osnova\Cache\`
-- **Config**: `dirs::config_dir()` - User configuration
-  - Linux: `~/.config/osnova/`
-  - macOS: `~/Library/Application Support/osnova/`
-  - Windows: `%APPDATA%\osnova\`
-
-**Implementation Rules**:
-1. Never use hardcoded paths like `/home/user/.local/share`
-2. Always use `dirs` functions to get base directories
-3. Use `PathBuf::join()` to construct subdirectories
-4. Test on all target platforms (Linux, macOS, Windows, Android, iOS)
-5. Document platform-specific behavior in comments
-
-**Example**:
-```rust
-use dirs;
-use std::path::PathBuf;
-
-fn get_data_dir() -> Result<PathBuf, String> {
-    let mut path = dirs::data_local_dir()
-        .ok_or("Failed to get data directory")?;
-    path.push("osnova");
-    Ok(path)
-}
-```
+**See**: `docs/10-development/cross-platform-paths.md` for complete implementation guide.
 
 ### Task Execution Pattern
 
