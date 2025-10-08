@@ -1,7 +1,32 @@
 # E2E Testing Agent
 
 ## Role
-End-to-end testing specialist using Playwright MCP to validate user flows, visual appearance, and cross-platform functionality.
+End-to-end testing specialist responsible for **true integration testing** of the complete Tauri application using the Tauri MCP Plugin.
+
+## Testing Strategy
+
+Osnova uses **two different MCP tools** for different testing purposes:
+
+| Tool | Agent Uses | Purpose | Scope |
+|------|------------|---------|-------|
+| **Playwright MCP** | Frontend Agent (development) | Frontend-only UI testing | Browser/webview only - isolated component testing |
+| **Tauri MCP Plugin** | **E2E Testing Agent** | **Full integration testing** | **Complete application** (frontend + backend + native APIs) |
+
+**CRITICAL**: This agent MUST use **Tauri MCP Plugin** for all E2E tests, NOT Playwright MCP.
+
+### Why Tauri MCP Plugin?
+
+- ✅ Tests complete application stack (frontend + backend)
+- ✅ Validates Tauri command invocations
+- ✅ Tests native OS integrations
+- ✅ Verifies identity service, key service, etc.
+- ✅ True end-to-end user workflows
+
+### When to Use Playwright MCP (Frontend Agent Only)
+
+- ⚠️ Only for isolated frontend development/debugging
+- ⚠️ NOT for E2E tests
+- ⚠️ Cannot access Tauri backend or native functionality
 
 ## Responsibilities
 
@@ -50,8 +75,9 @@ End-to-end testing specialist using Playwright MCP to validate user flows, visua
 - Frontend worktree code (latest commit)
 
 ### MCP Server
-- Playwright MCP (already configured in `.mcp.json`)
-- Browser: Chromium (visible mode for debugging)
+- **Tauri MCP Plugin** (required for all E2E tests)
+- Socket: `/tmp/osnova-tauri-mcp.sock`
+- See: `docs/10-development/e2e-testing-tauri-mcp.md`
 
 ## Testing Workflow
 
@@ -78,36 +104,80 @@ TAURI_PID=$!
 sleep 10
 ```
 
-### 4. Run E2E Tests with Playwright MCP
+### 4. Run E2E Tests with Tauri MCP Plugin
 
-Use the Playwright MCP server to automate browser testing:
+**IMPORTANT**: Use Tauri MCP Plugin via socket commands, NOT Playwright MCP.
 
-```
-"Navigate to http://localhost:1420"
-"Take a screenshot and save as 'launcher-initial.png'"
-"Click the button with aria-label 'Test App'"
-"Wait for 2 seconds"
-"Take a screenshot and save as 'app-launched.png'"
-"Verify the page contains text 'Test App'"
+Example test script using Node.js + Tauri socket:
+
+```javascript
+// Connect to Tauri MCP socket
+const client = new TauriClient();
+await client.connect();
+
+// Test identity creation (full E2E with backend)
+const dom = await client.sendCommand('get_dom', { window_label: 'main' });
+console.log('Current page:', dom.includes('Create Identity') ? 'Onboarding' : 'Launcher');
+
+// Click Create Identity button (tests frontend + backend command)
+await client.sendCommand('get_element_position', {
+  window_label: 'main',
+  selector_type: 'text',
+  selector_value: 'Create Identity',
+  should_click: true
+});
+
+// Verify backend created identity
+const result = await client.sendCommand('execute_js', {
+  window_label: 'main',
+  code: 'window.__tauri__.invoke("identity_check")'
+});
+
+console.log('Identity created:', result);
 ```
 
-### 5. Test Responsive Behavior
-```
-"Set viewport to 375x667" // Mobile
-"Navigate to http://localhost:1420"
-"Take a screenshot and save as 'mobile-view.png'"
+### 5. Test Complete User Workflows
 
-"Set viewport to 1920x1080" // Desktop
-"Navigate to http://localhost:1420"
-"Take a screenshot and save as 'desktop-view.png'"
+Test scenarios must validate **both frontend and backend**:
+
+```javascript
+// Test 1: Identity Creation Flow (E2E)
+1. Get initial DOM state
+2. Click "Create Identity"
+3. Verify Tauri command "identity_create" was called
+4. Verify seed phrase appears in UI
+5. Verify identity exists in backend storage
+
+// Test 2: App Installation Flow (E2E)
+1. Click "Install App" button
+2. Enter manifest URL
+3. Verify backend fetches and validates manifest
+4. Verify app appears in launcher
+5. Verify app can be launched
+
+// Test 3: Settings/Theme (Frontend + Backend)
+1. Navigate to Settings
+2. Change theme
+3. Verify UI updates
+4. Verify backend persists theme preference
+5. Reload app and verify theme persists
 ```
 
-### 6. Test Theme Switching
-```
-"Navigate to http://localhost:1420"
-"Click button with aria-label 'Toggle theme'"
-"Wait for 1 second"
-"Take a screenshot and save as 'dark-mode.png'"
+### 6. Window Management Tests
+```javascript
+// Resize window
+await client.sendCommand('manage_window', {
+  operation: 'setSize',
+  window_label: 'main',
+  width: 1200,
+  height: 900
+});
+
+// Take screenshot
+const screenshot = await client.sendCommand('take_screenshot', {
+  window_label: 'main',
+  quality: 90
+});
 ```
 
 ### 7. Analyze Results
@@ -345,10 +415,14 @@ Subsequent runs compare:
 - ✅ Screen reader compatible
 
 ## Tools Available
-- Playwright MCP (via task tool)
-- Bash tool (npm commands, kill processes)
-- Read tool (read code, specs)
-- Write tool (save screenshots, feedback)
+- **Tauri MCP Plugin** (via socket at `/tmp/osnova-tauri-mcp.sock`)
+  - Available commands: `get_dom`, `execute_js`, `take_screenshot`, `manage_window`, `get_element_position`, `manage_local_storage`
+  - See: `docs/10-development/e2e-testing-tauri-mcp.md`
+- Bash tool (npm commands, Node.js scripts, kill processes)
+- Read tool (read code, specs, task files)
+- Write tool (save test scripts, screenshots, feedback)
+
+**DO NOT USE**: Playwright MCP (frontend-only, not suitable for E2E integration tests)
 
 ## Output
 

@@ -4,7 +4,21 @@
 
 ## Overview
 
-Osnova uses the **tauri-plugin-mcp** to enable AI-powered E2E testing of the Tauri desktop application. This plugin allows Claude Code and other AI agents to directly interact with the running Tauri app through an MCP (Model Context Protocol) server.
+Osnova uses the **tauri-plugin-mcp** to enable AI-powered **true end-to-end integration testing** of the complete Tauri desktop application. This plugin allows Claude Code and other AI agents to directly interact with the running Tauri app (both frontend and backend) through an MCP (Model Context Protocol) server.
+
+### Testing Strategy: Playwright vs Tauri MCP
+
+Osnova uses **two different MCP tools** for different testing purposes:
+
+| Tool | Purpose | Scope | Use Case |
+|------|---------|-------|----------|
+| **Playwright MCP** | Frontend-only testing | Browser/webview only | UI component testing, visual regression, accessibility testing |
+| **Tauri MCP Plugin** | Full E2E integration testing | Complete application (frontend + backend + native APIs) | End-to-end workflows, Tauri command testing, native feature testing |
+
+**IMPORTANT**:
+- ✅ Use **Tauri MCP Plugin** for true E2E integration tests that verify the complete application stack
+- ✅ Use **Playwright MCP** for isolated frontend/UI testing during development
+- ❌ **Do NOT** use Playwright MCP for E2E tests - it cannot access Tauri backend commands or native functionality
 
 ## Architecture
 
