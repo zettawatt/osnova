@@ -139,11 +139,49 @@ All specifications are in `docs/` organized as chapters:
 
 ### Key Dependencies
 
-**Rust**: autonomi v0.6.1 • saorsa-core (main) • saorsa-pqc • saorsa-fec • saorsa-seal • cocoon v0.4.3 • serde • tokio • anyhow • thiserror
+**Rust**: autonomi v0.6.1 • saorsa-core (main) • saorsa-pqc • saorsa-fec • saorsa-seal • cocoon v0.4.3 • dirs v5.x • serde • tokio • anyhow • thiserror
 
 **TypeScript**: Svelte 5.x • @tauri-apps/api • Vitest • Playwright
 
 **See `Cargo.toml` and `package.json` for complete dependency lists.**
+
+### Cross-Platform Path Management
+
+**Requirement**: ALL file system operations MUST use the `dirs` crate to ensure cross-platform compatibility.
+
+**Platform-Specific Directories**:
+- **Data**: `dirs::data_local_dir()` - Application data storage
+  - Linux: `~/.local/share/osnova/`
+  - macOS: `~/Library/Application Support/osnova/`
+  - Windows: `%LOCALAPPDATA%\osnova\`
+- **Cache**: `dirs::cache_dir()` - Temporary/cached data
+  - Linux: `~/.cache/osnova/`
+  - macOS: `~/Library/Caches/osnova/`
+  - Windows: `%LOCALAPPDATA%\osnova\Cache\`
+- **Config**: `dirs::config_dir()` - User configuration
+  - Linux: `~/.config/osnova/`
+  - macOS: `~/Library/Application Support/osnova/`
+  - Windows: `%APPDATA%\osnova\`
+
+**Implementation Rules**:
+1. Never use hardcoded paths like `/home/user/.local/share`
+2. Always use `dirs` functions to get base directories
+3. Use `PathBuf::join()` to construct subdirectories
+4. Test on all target platforms (Linux, macOS, Windows, Android, iOS)
+5. Document platform-specific behavior in comments
+
+**Example**:
+```rust
+use dirs;
+use std::path::PathBuf;
+
+fn get_data_dir() -> Result<PathBuf, String> {
+    let mut path = dirs::data_local_dir()
+        .ok_or("Failed to get data directory")?;
+    path.push("osnova");
+    Ok(path)
+}
+```
 
 ### Task Execution Pattern
 
