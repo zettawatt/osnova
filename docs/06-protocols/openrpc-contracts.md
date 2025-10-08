@@ -16,11 +16,11 @@ The OpenRPC contracts define the JSON-RPC 2.0 API surface for external endpoints
 ### Source of Truth
 
 **Service Specification Files** are the source of truth:
-- `components/backend/osnova-core.md`
-- `components/backend/osnova-wallet.md`
-- `components/backend/osnova-saorsa.md`
-- `components/backend/osnova-autonomi.md`
-- `components/backend/osnova-bundler.md`
+- `docs/03-core-services/osnova-core.md` - Core shell services
+- `docs/03-core-services/osnova-wallet.md` - Cryptocurrency wallet
+- `docs/03-core-services/osnova-saorsa.md` - Identity management
+- `docs/03-core-services/osnova-autonomi.md` - Autonomi network integration
+- `docs/03-core-services/osnova-bundler.md` - Component packaging
 
 Each file contains complete OpenRPC method definitions with:
 - Method names

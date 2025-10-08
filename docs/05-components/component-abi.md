@@ -2,6 +2,8 @@
 
 Update (2025-10-03): Core backend functionality is now implemented as in‑process Rust modules, not external components. The ABI below is reframed as internal service contracts.
 
+**For concrete backend component ABI implementation with FFI bindings, see [component-abi-impl.md](./component-abi-impl.md)**
+
 ## Goals
 - Define minimal interfaces and lifecycle expectations for core services
 - Ensure testable, stable APIs with docstrings and examples per Constitution

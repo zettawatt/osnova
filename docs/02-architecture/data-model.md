@@ -1,6 +1,6 @@
-# Data Model — Initialize Osnova feature spec from docs/spec.md
+# Data Model
 
-This document captures entities, fields, and relationships extracted from the feature spec.
+This document defines the conceptual data model for Osnova, including entities, relationships, and validation rules. For concrete SQL implementation, see [data-model-sql.md](./data-model-sql.md).
 
 
 Architecture Update (2025-10-03): Built-in core services and core screens are part of the Osnova shell and are not represented as ComponentRef entries. ComponentRef applies to app-supplied components only (frontend/backend) referenced by application manifests.
