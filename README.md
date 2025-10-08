@@ -31,8 +31,6 @@ osnova/
 
 ## Setup
 
-**Important**: Before committing, ensure `.gitignore` is configured to exclude build artifacts:
-
 ```bash
 # .gitignore should include:
 /target/
@@ -43,9 +41,9 @@ osnova/
 ## Building
 
 ```bash
-cargo build
-cargo test
-cargo clippy
+cd app
+npm install
+npm run tauri dev
 ```
 
 ## Documentation
@@ -60,4 +58,4 @@ See `CLAUDE.md` for development guidelines and `AGENTS.md` for multi-agent workf
 
 ## License
 
-MIT OR Apache-2.0
+AGPL3
