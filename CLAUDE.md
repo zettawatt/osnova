@@ -151,6 +151,12 @@ All specifications are in `docs/` organized as chapters:
 
 **See**: `docs/10-development/cross-platform-paths.md` for complete implementation guide.
 
+### E2E Testing with Claude Code
+
+Osnova uses **tauri-plugin-mcp** for AI-powered testing of the Tauri desktop app. Claude Code can interact with the running app through MCP tools (screenshots, DOM access, JavaScript execution, etc.).
+
+**See**: `docs/10-development/e2e-testing-tauri-mcp.md` for setup and usage.
+
 ### Task Execution Pattern
 
 1. Read task from `.agents/queue/task-{id}.json`

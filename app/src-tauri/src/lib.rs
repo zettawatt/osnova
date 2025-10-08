@@ -304,8 +304,22 @@ pub fn run() {
 
     let app_state = AppState::new(storage_path);
 
-    tauri::Builder::default()
-        .plugin(tauri_plugin_opener::init())
+    let mut builder = tauri::Builder::default()
+        .plugin(tauri_plugin_opener::init());
+
+    // Enable MCP plugin for AI-powered testing (debug builds only)
+    #[cfg(debug_assertions)]
+    {
+        use std::path::PathBuf;
+        builder = builder.plugin(tauri_plugin_mcp::init_with_config(
+            tauri_plugin_mcp::PluginConfig::new("osnova".to_string())
+                .start_socket_server(true)
+                // Use IPC socket (Unix domain socket on Linux/macOS)
+                .socket_path(PathBuf::from("/tmp/osnova-tauri-mcp.sock")),
+        ));
+    }
+
+    builder
         .manage(app_state)
         .invoke_handler(tauri::generate_handler![
             identity_check,

@@ -26,6 +26,10 @@ dirs = "5.0"
 blake3 = "1.5"
 hex = "0.4"
 
+# MCP plugin for AI-powered testing (debug builds only)
+# Using P3GLEG's version from GitHub (not the crates.io MCP client)
+tauri-plugin-mcp = { git = "https://github.com/P3GLEG/tauri-plugin-mcp", branch = "main" }
+
 # Osnova core library
 osnova_lib = { path = "../../core/osnova_lib" }
 
