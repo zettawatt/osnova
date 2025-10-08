@@ -20,7 +20,7 @@ Phase 3 focuses on implementing the core Osnova functionality: Autonomi Network 
 
 1. **Autonomi Network Integration** (Tasks 064-072) ✅ COMPLETE
 2. **Cross-Platform Path Management** (Tasks 073-087) - See CROSS_PLATFORM_PATHS.md
-3. **Component Packaging System** (Tasks 088-097) - Renumbered
+3. **Component Packaging System** (Tasks 088-097) - **UPDATED FOR SOURCE DISTRIBUTION**
 4. **Identity & Key Management** (Tasks 098-105) - Renumbered
 5. **Server Mode & Client-Server Pairing** (Tasks 106-115) - Renumbered
 6. **OpenRPC Infrastructure** (Tasks 116-125) - Renumbered
@@ -29,6 +29,8 @@ Phase 3 focuses on implementing the core Osnova functionality: Autonomi Network 
 9. **Performance & Optimization** (Tasks 139-143) - Renumbered
 
 **Note**: Tasks 073-087 were inserted for cross-platform path management. Original tasks 073+ have been renumbered accordingly. See `CROSS_PLATFORM_PATHS.md` for detailed cross-platform path implementation tasks.
+
+**IMPORTANT ARCHITECTURAL CHANGE**: Component Packaging System (Tasks 088-097) updated on 2025-10-08 to use **source distribution for backend components** instead of distributing pre-compiled dynamic libraries. Backend components are now distributed as Rust source code tarballs and compiled locally on the user's machine using a Rust toolchain downloaded on first backend component install. This avoids macOS/Windows security warnings for unsigned binaries. See `docs/05-components/packaging.md` for complete architecture.
 
 ---
 
@@ -240,80 +242,135 @@ Phase 3 focuses on implementing the core Osnova functionality: Autonomi Network 
 
 ---
 
-## 2. Component Packaging System (Tasks 073-082)
+## 2. Component Packaging System (Tasks 088-097)
 
-### Task 073: Implement Frontend Component Packager
+### Task 088: Implement Frontend Component Packager
 **Priority**: High | **Estimated**: 2 days | **Parallelizable**: Yes
 
-**Description**: Build tool to package Svelte apps as ZLIB-compressed tarballs.
+**Description**: Implement native Rust packager for Svelte apps as ZLIB-compressed tarballs.
 
 **Acceptance Criteria**:
-- [ ] Create `scripts/package-frontend.sh` script
-- [ ] Build Svelte app (`npm run build`)
-- [ ] Create tarball of build output
-- [ ] Compress with ZLIB (level 9)
-- [ ] Generate manifest entry with hash
-- [ ] Write integration test for packaging
-- [ ] Document usage in README
+- [ ] Create `core/osnova_lib/src/packaging/frontend.rs`
+- [ ] Build Svelte app via `std::process::Command` (npm run build)
+- [ ] Create tarball of build output using `tar` crate
+- [ ] Compress with ZLIB (level 9) using `flate2` crate
+- [ ] Calculate SHA-256 hash using `sha2` crate
+- [ ] Generate `PackageManifest` with metadata
+- [ ] Write unit tests for packaging operations
+- [ ] Coverage ≥85%
 
 **Files to Create/Modify**:
-- `scripts/package-frontend.sh`
-- `scripts/README.md`
-- `components/frontend/example-app/` (example component)
+- `core/osnova_lib/src/packaging/mod.rs`
+- `core/osnova_lib/src/packaging/frontend.rs`
+- `core/osnova_lib/src/packaging/manifest.rs`
+- `core/osnova_lib/tests/packaging/frontend_test.rs`
+- `docs/05-components/packaging.md` (see detailed spec)
 
 **Dependencies**: None
 
 ---
 
-### Task 074: Implement Backend Component Packager
+### Task 089: Implement Backend Component Packager (Source Distribution)
 **Priority**: High | **Estimated**: 2 days | **Parallelizable**: Yes
 
-**Description**: Build tool to compile and package Rust backend components as binaries.
+**Description**: Implement native Rust packager for backend components as source code tarballs.
 
 **Acceptance Criteria**:
-- [ ] Create `scripts/package-backend.sh` script
-- [ ] Compile Rust component (`cargo build --release`)
-- [ ] Strip debug symbols
-- [ ] Generate manifest entry with hash
-- [ ] Support cross-compilation targets (Linux, macOS, Windows, Android, iOS)
-- [ ] Write integration test for packaging
-- [ ] Document usage in README
+- [ ] Create `core/osnova_lib/src/packaging/backend.rs`
+- [ ] Validate Cargo.toml structure (require `crate-type = ["cdylib"]`)
+- [ ] Create tarball of source code (Cargo.toml, src/, Cargo.lock)
+- [ ] Compress with ZLIB (level 9) using `flate2` crate
+- [ ] Calculate SHA-256 hash using `sha2` crate
+- [ ] Generate `PackageManifest` with metadata
+- [ ] Write unit tests for packaging operations
+- [ ] Coverage ≥85%
 
 **Files to Create/Modify**:
-- `scripts/package-backend.sh`
-- `scripts/README.md`
+- `core/osnova_lib/src/packaging/backend.rs`
+- `core/osnova_lib/tests/packaging/backend_test.rs`
 - `components/backend/example-service/` (example component)
 
 **Dependencies**: None
 
 ---
 
-### Task 075: Implement Component Unpacker (Frontend)
+### Task 090: Implement Component Unpacker
 **Priority**: High | **Estimated**: 1.5 days | **Parallelizable**: Yes
 
-**Description**: Implement unpacking ZLIB-compressed frontend components.
+**Description**: Implement unpacking ZLIB-compressed component tarballs (both frontend and backend source).
 
 **Acceptance Criteria**:
-- [ ] `unpack_frontend_component(tarball: &Path, dest: &Path) -> Result<()>`
-- [ ] Decompress ZLIB tarball
-- [ ] Extract to temporary directory
-- [ ] Verify extracted files match manifest hash
+- [ ] Create `core/osnova_lib/src/packaging/unpacker.rs`
+- [ ] `unpack_component(tarball: &Path, dest: &Path, expected_hash: &str) -> Result<()>`
+- [ ] Verify SHA-256 hash before unpacking
+- [ ] Decompress ZLIB tarball using `flate2` crate
+- [ ] Extract to destination directory using `tar` crate
+- [ ] Sanitize paths to prevent path traversal attacks
 - [ ] Write unit tests for unpacking
-- [ ] Test error cases (corrupted tarball, insufficient disk space)
+- [ ] Test error cases (corrupted tarball, hash mismatch, path traversal)
 - [ ] Coverage ≥85%
 
 **Files to Create/Modify**:
-- `core/osnova_lib/src/components/unpacker.rs`
-- `core/osnova_lib/tests/components/unpacker_test.rs`
+- `core/osnova_lib/src/packaging/unpacker.rs`
+- `core/osnova_lib/tests/packaging/unpacker_test.rs`
 
-**Dependencies**: Task 067
+**Dependencies**: None
 
 ---
 
-### Task 076: Implement Backend Component ABI
+### Task 091: Implement Rust Toolchain Downloader
 **Priority**: Critical | **Estimated**: 3 days | **Parallelizable**: No
 
-**Description**: Define and implement plugin ABI for backend components.
+**Description**: Download and install Rust toolchain on first backend component install (download on first run approach).
+
+**Acceptance Criteria**:
+- [ ] Create `core/osnova_lib/src/packaging/toolchain.rs`
+- [ ] Download rustup-init from official Rust servers (https://static.rust-lang.org/rustup/dist/)
+- [ ] Support platforms: Linux (x86_64/aarch64), macOS (x86_64/aarch64), Windows (x86_64)
+- [ ] Verify SHA-256 hash against official checksums
+- [ ] Install minimal toolchain (rustc + cargo only, no docs) to `{data_dir}/rust-toolchain/`
+- [ ] Show progress dialog to user during download and installation
+- [ ] Write unit tests for download and verification
+- [ ] Test error cases (network failure, hash mismatch)
+- [ ] Coverage ≥85%
+
+**Files to Create/Modify**:
+- `core/osnova_lib/src/packaging/toolchain.rs`
+- `core/osnova_lib/tests/packaging/toolchain_test.rs`
+- `docs/05-components/packaging.md` (see Rust Toolchain Management section)
+
+**Dependencies**: None
+
+---
+
+### Task 092: Implement Local Backend Component Compilation
+**Priority**: Critical | **Estimated**: 2.5 days | **Parallelizable**: No
+
+**Description**: Compile backend component source code locally using downloaded Rust toolchain.
+
+**Acceptance Criteria**:
+- [ ] `compile_backend_component(source_dir: &Path, component_id: &str) -> Result<PathBuf>`
+- [ ] Call `cargo build --release --lib` via `std::process::Command`
+- [ ] Use `CARGO_HOME` and `RUSTUP_HOME` environment variables pointing to Osnova's toolchain
+- [ ] Locate compiled dynamic library (.so/.dylib/.dll) in `target/release/`
+- [ ] Cache compiled binary in `{data_dir}/component-cache/{component-id}/library`
+- [ ] Show progress dialog to user during compilation
+- [ ] Write integration tests for compilation workflow
+- [ ] Test error cases (compilation failure, missing dependencies)
+- [ ] Coverage ≥85%
+
+**Files to Create/Modify**:
+- `core/osnova_lib/src/packaging/toolchain.rs` (extend)
+- `core/osnova_lib/tests/packaging/compilation_test.rs`
+
+**Dependencies**: Task 091
+
+---
+
+### Task 093: Implement Backend Component ABI
+**Priority**: Critical | **Estimated**: 3 days | **Parallelizable**: No
+
+**Description**: Define and implement plugin ABI for backend components (loaded from locally-compiled dynamic libraries).
 
 **Acceptance Criteria**:
 - [ ] Define ABI trait with methods:
@@ -333,11 +390,11 @@ Phase 3 focuses on implementing the core Osnova functionality: Autonomi Network 
 - `components/backend/example-service/src/lib.rs`
 - `docs/05-components/component-abi.md`
 
-**Dependencies**: None
+**Dependencies**: Task 092 (need compiled binaries to load)
 
 ---
 
-### Task 077: Implement Component Loader
+### Task 094: Implement Component Loader
 **Priority**: Critical | **Estimated**: 2 days | **Parallelizable**: No
 
 **Description**: Implement system to load and manage backend components at runtime.
@@ -356,11 +413,11 @@ Phase 3 focuses on implementing the core Osnova functionality: Autonomi Network 
 - `core/osnova_lib/src/components/loader.rs`
 - `core/osnova_lib/tests/components/loader_test.rs`
 
-**Dependencies**: Task 076
+**Dependencies**: Task 093
 
 ---
 
-### Task 078: Implement Component Registry
+### Task 095: Implement Component Registry
 **Priority**: High | **Estimated**: 1.5 days | **Parallelizable**: Yes
 
 **Description**: Implement registry to track installed and available components.
@@ -381,7 +438,7 @@ Phase 3 focuses on implementing the core Osnova functionality: Autonomi Network 
 
 ---
 
-### Task 079: Update Apps Service - Component Integration
+### Task 096: Update Apps Service - Component Integration
 **Priority**: High | **Estimated**: 2 days | **Parallelizable**: No
 
 **Description**: Update existing Apps Service to use component system.
@@ -399,79 +456,41 @@ Phase 3 focuses on implementing the core Osnova functionality: Autonomi Network 
 - `core/osnova_lib/tests/services/apps_test.rs`
 - `app/src-tauri/src/lib.rs` (update commands)
 
-**Dependencies**: Tasks 070, 077, 078
+**Dependencies**: Tasks 070, 092, 094, 095
 
 ---
 
-### Task 080: Implement WebView Component Hosting
-**Priority**: High | **Estimated**: 2 days | **Parallelizable**: No
-
-**Description**: Implement hosting unpacked frontend components in Tauri WebViews.
-
-**Acceptance Criteria**:
-- [ ] Create `WebViewManager` to manage component WebViews
-- [ ] Load unpacked frontend component into WebView
-- [ ] Isolate each component in its own WebView instance
-- [ ] Pass configuration to component via query parameters
-- [ ] Write integration tests for WebView loading
-- [ ] Test component isolation
-
-**Files to Create/Modify**:
-- `app/src-tauri/src/webview_manager.rs`
-- `app/src-tauri/tests/webview_manager_test.rs`
-
-**Dependencies**: Task 075
-
----
-
-### Task 081: Create Example Application Bundle
+### Task 097: Create Example Application Bundle
 **Priority**: Medium | **Estimated**: 2 days | **Parallelizable**: Yes
 
-**Description**: Create complete example app with frontend and backend components.
+**Description**: Create complete example app with frontend and backend components (source distribution).
 
 **Acceptance Criteria**:
 - [ ] Create "Hello World" Svelte frontend component
-- [ ] Create "Hello World" Rust backend service with OpenRPC endpoint
+- [ ] Create "Hello World" Rust backend service with OpenRPC endpoint (source code)
 - [ ] Create application manifest referencing both components
-- [ ] Package both components
-- [ ] Upload to Autonomi Network (or use mock URIs)
+- [ ] Package both components using packaging system (Tasks 088-089)
+- [ ] Upload to Autonomi Network (or use mock URIs for testing)
 - [ ] Document in `components/examples/hello-world/README.md`
+- [ ] Test local compilation of backend component
 
 **Files to Create/Modify**:
 - `components/examples/hello-world/frontend/` (Svelte app)
-- `components/examples/hello-world/backend/` (Rust service)
+- `components/examples/hello-world/backend/` (Rust service - source code)
 - `components/examples/hello-world/manifest.json`
 - `components/examples/hello-world/README.md`
 
-**Dependencies**: Tasks 073, 074, 076
+**Dependencies**: Tasks 088, 089, 092, 093
 
 ---
 
-### Task 082: Integration Test - Full Component Lifecycle
-**Priority**: High | **Estimated**: 1 day | **Parallelizable**: No
-
-**Description**: End-to-end test of installing, loading, and running a complete application.
-
-**Acceptance Criteria**:
-- [ ] Install example app from manifest
-- [ ] Download frontend and backend components
-- [ ] Unpack and verify components
-- [ ] Load backend component via ABI
-- [ ] Host frontend component in WebView
-- [ ] Verify component communication via OpenRPC
-- [ ] Uninstall and cleanup
-- [ ] Test completes in <10 seconds
-
-**Files to Create/Modify**:
-- `core/osnova_lib/tests/integration/component_lifecycle_test.rs`
-
-**Dependencies**: Tasks 070, 077, 079, 080, 081
+**NOTE**: Removed former Tasks 080-082 (WebView Component Hosting, Integration Test) as they were renumbered above. The Component Packaging System now consists of Tasks 088-097.
 
 ---
 
-## 3. Identity & Key Management (Tasks 083-090)
+## 3. Identity & Key Management (Tasks 098-105)
 
-### Task 083: Integrate saorsa-core for Identity
+### Task 098: Integrate saorsa-core for Identity
 **Priority**: Critical | **Estimated**: 3 days | **Parallelizable**: No
 
 **Description**: Integrate saorsa-core for 4-word identity address management.
@@ -496,7 +515,7 @@ Phase 3 focuses on implementing the core Osnova functionality: Autonomi Network 
 
 ---
 
-### Task 084: Implement Secure Seed Phrase Storage
+### Task 099: Implement Secure Seed Phrase Storage
 **Priority**: Critical | **Estimated**: 2 days | **Parallelizable**: No
 
 **Description**: Implement secure storage for 12-word seed phrase using platform keystore.
@@ -523,7 +542,7 @@ Phase 3 focuses on implementing the core Osnova functionality: Autonomi Network 
 
 ---
 
-### Task 085: Implement Master Key Derivation
+### Task 100: Implement Master Key Derivation
 **Priority**: Critical | **Estimated**: 2 days | **Parallelizable**: No
 
 **Description**: Derive master key from seed phrase for all cryptographic operations.
@@ -542,11 +561,11 @@ Phase 3 focuses on implementing the core Osnova functionality: Autonomi Network 
 - `core/osnova_lib/tests/identity/key_derivation_test.rs`
 - `docs/07-security/keys.md` (update)
 
-**Dependencies**: Task 084
+**Dependencies**: Task 099
 
 ---
 
-### Task 086: Integrate saorsa-seal for Encryption
+### Task 101: Integrate saorsa-seal for Encryption
 **Priority**: Critical | **Estimated**: 2 days | **Parallelizable**: No
 
 **Description**: Integrate saorsa-seal (ChaCha20-Poly1305) for encryption at rest.
@@ -567,11 +586,11 @@ Phase 3 focuses on implementing the core Osnova functionality: Autonomi Network 
 - `core/osnova_lib/src/encryption/manager.rs`
 - `core/osnova_lib/tests/encryption/manager_test.rs`
 
-**Dependencies**: Task 085
+**Dependencies**: Task 100
 
 ---
 
-### Task 087: Implement Encrypted Data Store
+### Task 102: Implement Encrypted Data Store
 **Priority**: High | **Estimated**: 3 days | **Parallelizable**: No
 
 **Description**: Implement encrypted key-value store for user data persistence.
@@ -593,11 +612,11 @@ Phase 3 focuses on implementing the core Osnova functionality: Autonomi Network 
 - `core/osnova_lib/src/storage/encrypted_store.rs`
 - `core/osnova_lib/tests/storage/encrypted_store_test.rs`
 
-**Dependencies**: Task 086
+**Dependencies**: Task 101
 
 ---
 
-### Task 088: Update Identity Service - Complete Implementation
+### Task 103: Update Identity Service - Complete Implementation
 **Priority**: High | **Estimated**: 2 days | **Parallelizable**: No
 
 **Description**: Complete identity service implementation with full saorsa integration.
@@ -614,11 +633,11 @@ Phase 3 focuses on implementing the core Osnova functionality: Autonomi Network 
 - `core/osnova_lib/src/services/identity.rs` (update)
 - `core/osnova_lib/tests/services/identity_test.rs` (update)
 
-**Dependencies**: Tasks 083, 084, 085
+**Dependencies**: Tasks 098, 099, 100
 
 ---
 
-### Task 089: Implement Identity Backup/Restore
+### Task 104: Implement Identity Backup/Restore
 **Priority**: Medium | **Estimated**: 2 days | **Parallelizable**: Yes
 
 **Description**: Implement secure backup and restore of identity data.
@@ -637,11 +656,11 @@ Phase 3 focuses on implementing the core Osnova functionality: Autonomi Network 
 - `core/osnova_lib/src/identity/backup.rs`
 - `core/osnova_lib/tests/identity/backup_test.rs`
 
-**Dependencies**: Task 088
+**Dependencies**: Task 103
 
 ---
 
-### Task 090: Integration Test - Identity Lifecycle
+### Task 105: Integration Test - Identity Lifecycle
 **Priority**: Medium | **Estimated**: 1 day | **Parallelizable**: No
 
 **Description**: End-to-end test of identity creation, storage, and usage.
@@ -657,7 +676,7 @@ Phase 3 focuses on implementing the core Osnova functionality: Autonomi Network 
 **Files to Create/Modify**:
 - `core/osnova_lib/tests/integration/identity_lifecycle_test.rs`
 
-**Dependencies**: Tasks 083-089
+**Dependencies**: Tasks 098-104
 
 ---
 
