@@ -54,9 +54,11 @@ pub struct KeyInfo {
 /// ```no_run
 /// use osnova_lib::services::KeyService;
 /// use osnova_lib::models::key_cocoon::KeyType;
+/// use osnova_lib::platform::paths::get_data_dir;
 ///
 /// # fn example() -> anyhow::Result<()> {
-/// let service = KeyService::new("/path/to/storage", &[0u8; 32])?;
+/// let storage_path = get_data_dir()?;
+/// let service = KeyService::new(&storage_path, &[0u8; 32])?;
 ///
 /// // Derive a new key
 /// let response = service.derive("com.osnova.wallet", KeyType::Ed25519)?;
@@ -131,8 +133,10 @@ impl KeyService {
     /// ```no_run
     /// # use osnova_lib::services::KeyService;
     /// # use osnova_lib::models::key_cocoon::KeyType;
+    /// # use osnova_lib::platform::paths::get_data_dir;
     /// # fn example() -> anyhow::Result<()> {
-    /// let service = KeyService::new("/tmp/storage", &[0u8; 32])?;
+    /// let storage_path = get_data_dir()?;
+    /// let service = KeyService::new(&storage_path, &[0u8; 32])?;
     /// let response = service.derive("com.osnova.wallet", KeyType::Ed25519)?;
     /// println!("Derived key at index {}", response.index);
     /// # Ok(())
@@ -173,8 +177,10 @@ impl KeyService {
     /// ```no_run
     /// # use osnova_lib::services::KeyService;
     /// # use osnova_lib::models::key_cocoon::KeyType;
+    /// # use osnova_lib::platform::paths::get_data_dir;
     /// # fn example() -> anyhow::Result<()> {
-    /// let service = KeyService::new("/tmp/storage", &[0u8; 32])?;
+    /// let storage_path = get_data_dir()?;
+    /// let service = KeyService::new(&storage_path, &[0u8; 32])?;
     /// let response = service.derive_at_index("com.osnova.wallet", 5, KeyType::Ed25519)?;
     /// println!("Key at index 5: {}", response.public_key);
     /// # Ok(())
@@ -217,8 +223,10 @@ impl KeyService {
     ///
     /// ```no_run
     /// # use osnova_lib::services::KeyService;
+    /// # use osnova_lib::platform::paths::get_data_dir;
     /// # fn example() -> anyhow::Result<()> {
-    /// let service = KeyService::new("/tmp/storage", &[0u8; 32])?;
+    /// let storage_path = get_data_dir()?;
+    /// let service = KeyService::new(&storage_path, &[0u8; 32])?;
     /// let response = service.get_by_public_key("base64-encoded-public-key")?;
     /// println!("Secret key: {}", response.secret_key);
     /// # Ok(())
@@ -252,8 +260,10 @@ impl KeyService {
     ///
     /// ```no_run
     /// # use osnova_lib::services::KeyService;
+    /// # use osnova_lib::platform::paths::get_data_dir;
     /// # fn example() -> anyhow::Result<()> {
-    /// let service = KeyService::new("/tmp/storage", &[0u8; 32])?;
+    /// let storage_path = get_data_dir()?;
+    /// let service = KeyService::new(&storage_path, &[0u8; 32])?;
     /// let keys = service.list_for_component("com.osnova.wallet")?;
     /// for key in keys {
     ///     println!("Index {}: {}", key.index, key.public_key);

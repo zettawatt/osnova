@@ -25,9 +25,11 @@ pub struct IdentityStatus {
 ///
 /// ```no_run
 /// use osnova_lib::services::IdentityService;
+/// use osnova_lib::platform::paths::get_data_dir;
 ///
 /// # async fn example() -> anyhow::Result<()> {
-/// let service = IdentityService::new("/path/to/storage")?;
+/// let storage_path = get_data_dir()?;
+/// let service = IdentityService::new(&storage_path)?;
 ///
 /// // Check status
 /// let status = service.status()?;
@@ -73,8 +75,10 @@ impl IdentityService {
     ///
     /// ```no_run
     /// # use osnova_lib::services::IdentityService;
+    /// # use osnova_lib::platform::paths::get_data_dir;
     /// # fn example() -> anyhow::Result<()> {
-    /// let service = IdentityService::new("/tmp/storage")?;
+    /// let storage_path = get_data_dir()?;
+    /// let service = IdentityService::new(&storage_path)?;
     /// let status = service.status()?;
     /// println!("Initialized: {}", status.initialized);
     /// # Ok(())
@@ -125,8 +129,10 @@ impl IdentityService {
     ///
     /// ```no_run
     /// # use osnova_lib::services::IdentityService;
+    /// # use osnova_lib::platform::paths::get_data_dir;
     /// # async fn example() -> anyhow::Result<()> {
-    /// let service = IdentityService::new("/tmp/storage")?;
+    /// let storage_path = get_data_dir()?;
+    /// let service = IdentityService::new(&storage_path)?;
     /// let (seed_phrase, address) = service.create()?;
     /// println!("BACKUP THIS SEED PHRASE: {}", seed_phrase);
     /// println!("Your address: {}", address);
@@ -170,8 +176,10 @@ impl IdentityService {
     ///
     /// ```no_run
     /// # use osnova_lib::services::IdentityService;
+    /// # use osnova_lib::platform::paths::get_data_dir;
     /// # async fn example() -> anyhow::Result<()> {
-    /// let service = IdentityService::new("/tmp/storage")?;
+    /// let storage_path = get_data_dir()?;
+    /// let service = IdentityService::new(&storage_path)?;
     /// let seed = "witch collapse practice feed shame open despair creek road again ice least";
     /// let address = service.import_with_phrase(seed)?;
     /// println!("Identity restored: {}", address);
